@@ -9,24 +9,25 @@ load_dotenv()
 
 class AIAnalyst:
     def __init__(self):
-        # Gemini API Key integration
-        self.api_key = os.getenv("GOOGLE_API_KEY")
+        # Groq API Key integration
+        self.api_key = os.getenv("GROQ_API_KEY")
+        self.model = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
         self.llm = None
-        
+
         if self.api_key:
             try:
-                from langchain_google_genai import ChatGoogleGenerativeAI
-                self.llm = ChatGoogleGenerativeAI(
-                    model="gemini-2.5-flash",  # Gemini 2.5 Flash (GA)
-                    google_api_key=self.api_key,
-                    temperature=0.3
+                from langchain_groq import ChatGroq
+                self.llm = ChatGroq(
+                    model=self.model,
+                    api_key=self.api_key,
+                    temperature=0.3,
                 )
-                print(f"[AI Analyst] Gemini 2.5 Flash initialized successfully")
+                print(f"[AI Analyst] Groq ({self.model}) initialized successfully")
             except Exception as e:
-                print(f"[AI Analyst] Failed to initialize Gemini: {e}")
+                print(f"[AI Analyst] Failed to initialize Groq: {e}")
                 self.llm = None
         else:
-            print("[AI Analyst] GOOGLE_API_KEY not found in environment - using fallback mode")
+            print("[AI Analyst] GROQ_API_KEY not found in environment - using fallback mode")
 
     async def analyze_simulation(self, metrics: Dict[str, Any], query: str) -> str:
         """
@@ -38,7 +39,7 @@ class AIAnalyst:
         
         try:
             if not self.llm:
-                raise Exception("No LLM initialized - GOOGLE_API_KEY not set in environment")
+                raise Exception("No LLM initialized - GROQ_API_KEY not set in environment")
 
             # Format metrics for better readability
             metrics_str = json.dumps(metrics, indent=2)
@@ -85,4 +86,4 @@ class AIAnalyst:
             else:
                 analysis += "✅ **Optimal Performance:** Network stability is optimal. Cache layers are effectively absorbing traffic."
                 
-            return f"{analysis}\n\n_(Note: Using rule-based analysis - AI Analyst offline. Set GOOGLE_API_KEY environment variable to enable AI analysis.)_"
+            return f"{analysis}\n\n_(Note: Using rule-based analysis - AI Analyst offline. Set GROQ_API_KEY environment variable to enable AI analysis.)_"

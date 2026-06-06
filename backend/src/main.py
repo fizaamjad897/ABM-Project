@@ -22,9 +22,10 @@ from pydantic import BaseModel
 app = FastAPI(title="CacheNet AI Simulator API")
 
 # Enable CORS for frontend
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "*").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[o.strip() for o in allowed_origins],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

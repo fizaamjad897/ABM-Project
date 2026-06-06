@@ -5,7 +5,7 @@ pydantic
 langchain
 langchain-openai
 websockets
-langchain-google-genai
+langchain-groq
 python-dotenv
 numpy
 pandas

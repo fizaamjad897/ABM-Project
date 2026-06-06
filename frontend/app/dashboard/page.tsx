@@ -53,7 +53,8 @@ export default function Dashboard() {
     React.useEffect(() => {
         const connect = () => {
             try {
-                ws.current = new WebSocket('ws://localhost:8000/ws/simulation');
+                const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000';
+                ws.current = new WebSocket(`${wsUrl}/ws/simulation`);
                 ws.current.onopen = () => setWsConnected(true);
                 ws.current.onmessage = (event) => {
                     const data = JSON.parse(event.data);
@@ -132,7 +133,8 @@ export default function Dashboard() {
         setInput('');
         setIsTyping(true);
         try {
-            const res = await fetch('http://localhost:8000/ai/analyze', {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            const res = await fetch(`${apiUrl}/ai/analyze`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ query: userQuery, metrics: { ...fullMetrics, agent_stats: agentStats } })
