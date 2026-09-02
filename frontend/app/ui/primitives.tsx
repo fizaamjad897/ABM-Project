@@ -25,12 +25,12 @@ export function Mark({ size = 22 }: { size?: number }) {
             sx={{ width: size, height: size, display: 'block', flex: 'none' }}
             aria-hidden
         >
-            <rect x="1" y="1" width="22" height="22" rx="6" fill={c.ink} />
-            <circle cx="12" cy="12" r="2.4" fill="#fff" />
-            <circle cx="6.6" cy="6.6" r="1.9" fill={c.accent} />
-            <circle cx="17.4" cy="6.6" r="1.9" fill={c.accent} />
-            <circle cx="6.6" cy="17.4" r="1.9" fill={c.accent} />
-            <circle cx="17.4" cy="17.4" r="1.9" fill={c.accent} />
+            <rect x="1" y="1" width="22" height="22" rx="6" fill={c.sunken} stroke={c.lineStrong} />
+            <circle cx="12" cy="12" r="2.4" fill={c.ink} />
+            <circle cx="6.6" cy="6.6" r="1.9" fill={c.ink} opacity=".62" />
+            <circle cx="17.4" cy="6.6" r="1.9" fill={c.ink} opacity=".62" />
+            <circle cx="6.6" cy="17.4" r="1.9" fill={c.ink} opacity=".62" />
+            <circle cx="17.4" cy="17.4" r="1.9" fill={c.ink} opacity=".62" />
         </Box>
     );
 }
@@ -62,7 +62,7 @@ export function Nav({ current, children }: { current?: string; children?: React.
             component="header"
             sx={{
                 position: 'sticky', top: 0, zIndex: 20, height: 56,
-                bgcolor: 'rgba(255,255,255,.82)', backdropFilter: 'blur(12px)',
+                bgcolor: 'rgba(11,12,14,.72)', backdropFilter: 'blur(12px)',
                 borderBottom: `1px solid ${c.line}`,
             }}
         >

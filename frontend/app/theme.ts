@@ -2,50 +2,63 @@
 
 import { createTheme } from '@mui/material/styles';
 
-/* The single source of colour truth. Anything not here does not exist. */
+/* ============================================================
+   The single source of colour truth.
+
+   Rule of the system: interface chrome carries no colour. Nav,
+   panels, borders, buttons and controls are neutral. Colour only
+   appears where it means something about the model —
+   green = cache hit, amber = origin read, red = failure.
+   A chart line is green because it plots hits.
+   ============================================================ */
 export const c = {
-    paper: '#fbfbfc',
-    surface: '#ffffff',
-    sunken: '#f6f7f9',
-    inverse: '#0b1220',
-    inverse2: '#131c2e',
+    /* surfaces, darkest to lightest */
+    paper: '#0b0c0e',      // page
+    surface: '#121418',    // panels
+    sunken: '#191c21',     // raised fills: chips, table heads, bubbles
+    inverse: '#08090b',    // recessed wells: the event console
+    inverse2: '#1b1e24',   // its border
 
-    ink: '#0a0f1a',
-    ink2: '#556072',
-    ink3: '#8a93a3',
-    inkInverse: '#e8ecf3',
-    inkInverse2: '#8b98ae',
+    /* text */
+    ink: '#eceef1',
+    ink2: '#9ba1ab',
+    ink3: '#7b818b',
+    inkInverse: '#eceef1',
+    inkInverse2: '#7b818b',
 
-    line: '#e4e7ec',
-    lineSoft: '#eff1f4',
-    lineStrong: '#cdd3dd',
+    /* rules — "soft" sits closer to the background, "strong" further */
+    line: '#23262c',
+    lineSoft: '#1a1d22',
+    lineStrong: '#343841',
 
-    accent: '#2563eb',
-    accentInk: '#1d4ed8',
-    accentWash: '#eff4ff',
-    accentLine: '#d5e2fd',
+    /* interactive: neutral by design, never a brand hue */
+    accent: '#eceef1',
+    accentInk: '#ffffff',
+    accentWash: '#1c1f25',
+    accentLine: '#33373f',
 
-    hit: '#0e9f6e',
-    hitWash: '#ecfdf5',
-    hitLine: '#b9e9d4',
-    miss: '#e02424',
-    missWash: '#fef2f2',
-    missLine: '#fbd5d5',
-    origin: '#c2760b',
-    originWash: '#fffaeb',
-    originLine: '#f6dfae',
+    /* semantics — the only colour in the product */
+    hit: '#3ecf8e',
+    hitWash: '#0f2a20',
+    hitLine: '#1f4d3a',
+    miss: '#f2555a',
+    missWash: '#2a1416',
+    missLine: '#4d2326',
+    origin: '#e8a33d',
+    originWash: '#2a2013',
+    originLine: '#4d3a1c',
 } as const;
 
-/* Chart series: accent first, then neutrals. Colour marks a series, not a mood. */
-export const series = [c.accent, c.origin, c.hit, '#7c8698', '#9aa4b5'];
+/* Chart series, in the order the eye should read them. Semantic first. */
+export const series = [c.hit, c.origin, c.ink2, '#6f95c9', c.miss];
 
 export const radius = { sm: 4, md: 8 };
 
 const theme = createTheme({
     cssVariables: false,
     palette: {
-        mode: 'light',
-        primary: { main: c.accent, dark: c.accentInk, light: c.accentWash, contrastText: '#fff' },
+        mode: 'dark',
+        primary: { main: c.accent, dark: '#ffffff', light: c.accentWash, contrastText: c.paper },
         success: { main: c.hit },
         error: { main: c.miss },
         warning: { main: c.origin },
@@ -75,13 +88,14 @@ const theme = createTheme({
     },
     components: {
         MuiCssBaseline: {
-            styleOverrides: { body: { backgroundColor: c.paper } },
+            styleOverrides: { body: { backgroundColor: c.paper, colorScheme: 'dark' } },
         },
         MuiPaper: {
             defaultProps: { elevation: 0 },
             styleOverrides: {
                 root: {
                     backgroundImage: 'none',
+                    backgroundColor: c.surface,
                     borderRadius: radius.md,
                     border: `1px solid ${c.line}`,
                     boxShadow: 'none',
@@ -102,14 +116,16 @@ const theme = createTheme({
                 },
                 sizeLarge: { padding: '12px 22px', fontSize: '0.9375rem' },
                 sizeSmall: { padding: '6px 12px', fontSize: '0.8125rem' },
+                /* The one high-contrast element on the page. */
                 containedPrimary: {
-                    backgroundColor: c.accent,
-                    '&:hover': { backgroundColor: c.accentInk },
+                    backgroundColor: c.ink,
+                    color: c.paper,
+                    '&:hover': { backgroundColor: '#ffffff' },
                 },
                 outlined: {
                     borderColor: c.line,
                     color: c.ink,
-                    backgroundColor: c.surface,
+                    backgroundColor: 'transparent',
                     '&:hover': { borderColor: c.lineStrong, backgroundColor: c.sunken },
                 },
                 text: {
@@ -126,7 +142,7 @@ const theme = createTheme({
                     fontSize: '0.75rem',
                     height: 24,
                     border: `1px solid ${c.line}`,
-                    backgroundColor: c.surface,
+                    backgroundColor: c.sunken,
                     color: c.ink2,
                 },
                 label: { paddingInline: 8 },
@@ -136,18 +152,17 @@ const theme = createTheme({
         MuiSlider: {
             styleOverrides: {
                 root: {
-                    color: c.accent, height: 3, padding: '12px 0',
+                    color: c.ink, height: 3, padding: '12px 0',
                     '&.Mui-disabled': { color: c.lineStrong },
                 },
-                rail: { backgroundColor: c.line, opacity: 1 },
+                rail: { backgroundColor: c.lineStrong, opacity: 1 },
                 track: { border: 'none' },
                 thumb: {
-                    width: 13, height: 13, backgroundColor: c.surface,
-                    border: `2px solid ${c.accent}`,
+                    width: 13, height: 13, backgroundColor: c.paper,
+                    border: `2px solid ${c.ink}`,
                     '&:hover, &.Mui-focusVisible': { boxShadow: `0 0 0 5px ${c.accentWash}` },
                     '&.Mui-active': { boxShadow: `0 0 0 7px ${c.accentWash}` },
                 },
-
             },
         },
         MuiSwitch: {
@@ -155,10 +170,11 @@ const theme = createTheme({
                 root: { width: 34, height: 20, padding: 0, display: 'flex' },
                 switchBase: {
                     padding: 3,
+                    color: c.ink3,
                     '&.Mui-checked': {
                         transform: 'translateX(14px)',
-                        color: '#fff',
-                        '& + .MuiSwitch-track': { opacity: 1, backgroundColor: c.accent },
+                        color: c.paper,
+                        '& + .MuiSwitch-track': { opacity: 1, backgroundColor: c.ink },
                     },
                 },
                 thumb: { width: 14, height: 14, boxShadow: 'none' },
@@ -169,11 +185,12 @@ const theme = createTheme({
             styleOverrides: {
                 root: {
                     borderRadius: radius.sm,
-                    backgroundColor: c.surface,
+                    backgroundColor: c.paper,
                     fontSize: '0.875rem',
+                    color: c.ink,
                     '& .MuiOutlinedInput-notchedOutline': { borderColor: c.line },
                     '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: c.lineStrong },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: c.accent, borderWidth: 1 },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: c.ink3, borderWidth: 1 },
                 },
                 input: { '&::placeholder': { color: c.ink3, opacity: 1 } },
             },
@@ -181,18 +198,19 @@ const theme = createTheme({
         MuiLinearProgress: {
             styleOverrides: {
                 root: { height: 3, borderRadius: 2, backgroundColor: c.line },
-                bar: { borderRadius: 2, backgroundColor: c.accent },
+                bar: { borderRadius: 2, backgroundColor: c.ink },
             },
         },
         MuiTooltip: {
             styleOverrides: {
                 tooltip: {
-                    backgroundColor: c.inverse, fontSize: '0.75rem', fontWeight: 400,
-                    borderRadius: radius.sm, padding: '6px 9px',
+                    backgroundColor: c.sunken, color: c.ink, border: `1px solid ${c.line}`,
+                    fontSize: '0.75rem', fontWeight: 400, borderRadius: radius.sm, padding: '6px 9px',
                 },
             },
         },
         MuiDivider: { styleOverrides: { root: { borderColor: c.line } } },
+        MuiIconButton: { styleOverrides: { root: { color: c.ink2, '&:hover': { color: c.ink, backgroundColor: c.sunken } } } },
     },
 });
 

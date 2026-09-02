@@ -16,11 +16,12 @@ import Topology, { type NodeState } from '../ui/Topology';
 
 type LogEntry = { id: string; time: number; type: string; msg: string };
 
+/* Colour in the log means what it means everywhere else. */
 const LOG_TONE = (t: string) =>
     t.includes('HIT') ? c.hit
-        : t.includes('MISS') ? '#6f9bf0'
-            : t.includes('CHAOS') || t.includes('KILL') ? c.origin
-                : c.inkInverse2;
+        : t.includes('MISS') ? c.origin
+            : t.includes('CHAOS') || t.includes('KILL') ? c.miss
+                : c.ink3;
 
 export default function Dashboard() {
     const [isRunning, setIsRunning] = React.useState(false);
@@ -176,7 +177,7 @@ export default function Dashboard() {
                     size="small"
                     onClick={isRunning ? stopSim : startSim}
                     startIcon={isRunning ? <Stop sx={{ fontSize: 16 }} /> : <PlayArrow sx={{ fontSize: 16 }} />}
-                    sx={isRunning ? { bgcolor: c.miss, '&:hover': { bgcolor: '#b91c1c' } } : undefined}
+                    sx={isRunning ? { bgcolor: c.miss, color: c.paper, '&:hover': { bgcolor: '#ff7276' } } : undefined}
                 >
                     {isRunning ? 'Stop' : 'Run model'}
                 </Button>
@@ -284,8 +285,8 @@ export default function Dashboard() {
                                         <AreaChart data={metrics} margin={{ top: 8, right: 16, bottom: 4, left: 8 }}>
                                             <defs>
                                                 <linearGradient id="fillRatio" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="0%" stopColor={c.accent} stopOpacity={0.16} />
-                                                    <stop offset="100%" stopColor={c.accent} stopOpacity={0} />
+                                                    <stop offset="0%" stopColor={c.hit} stopOpacity={0.22} />
+                                                    <stop offset="100%" stopColor={c.hit} stopOpacity={0} />
                                                 </linearGradient>
                                             </defs>
                                             <CartesianGrid stroke={c.lineSoft} vertical={false} />
@@ -298,14 +299,16 @@ export default function Dashboard() {
                                             <Tooltip
                                                 cursor={{ stroke: c.lineStrong, strokeWidth: 1 }}
                                                 contentStyle={{
-                                                    borderRadius: 4, border: `1px solid ${c.line}`,
-                                                    boxShadow: 'none', fontSize: 12, padding: '6px 9px',
+                                                    background: c.sunken, borderRadius: 4, border: `1px solid ${c.line}`,
+                                                    boxShadow: 'none', fontSize: 12, padding: '6px 9px', color: c.ink,
                                                 }}
+                                                itemStyle={{ color: c.ink }}
+                                                labelStyle={{ color: c.ink3 }}
                                                 labelFormatter={(v) => `t = ${v}`}
                                                 formatter={(v: any) => [`${Number(v).toFixed(1)}%`, 'Hit ratio']}
                                             />
                                             <Area
-                                                type="monotone" dataKey="hitRatio" stroke={c.accent} strokeWidth={1.75}
+                                                type="monotone" dataKey="hitRatio" stroke={c.hit} strokeWidth={1.75}
                                                 fill="url(#fillRatio)" isAnimationActive={false} dot={false}
                                             />
                                         </AreaChart>
@@ -342,14 +345,14 @@ export default function Dashboard() {
                                         alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
                                         maxWidth: '92%', px: 1.75, py: 1.25, borderRadius: '8px',
                                         fontSize: 13.5, lineHeight: 1.6,
-                                        bgcolor: m.role === 'user' ? c.accent : c.sunken,
-                                        color: m.role === 'user' ? '#fff' : c.ink,
-                                        border: `1px solid ${m.role === 'user' ? c.accent : c.line}`,
+                                        bgcolor: m.role === 'user' ? c.ink : c.sunken,
+                                        color: m.role === 'user' ? c.paper : c.ink,
+                                        border: `1px solid ${m.role === 'user' ? c.ink : c.line}`,
                                         '& p': { m: 0, mb: 1, '&:last-child': { mb: 0 } },
                                         '& ul, & ol': { pl: 2.5, mb: 1 },
                                         '& code': {
                                             fontFamily: 'var(--font-mono), monospace', fontSize: 11.5,
-                                            bgcolor: c.surface, border: `1px solid ${c.line}`,
+                                            bgcolor: c.paper, border: `1px solid ${c.line}`,
                                             px: .5, borderRadius: '3px',
                                         },
                                         '& strong': { fontWeight: 600 },
@@ -384,7 +387,7 @@ export default function Dashboard() {
                                                 <MuiTooltip title="Send">
                                                     <span>
                                                         <IconButton size="small" onClick={handleChat} disabled={!input.trim()}
-                                                            sx={{ color: c.accent, mr: -.5 }}>
+                                                            sx={{ color: c.ink, mr: -.5 }}>
                                                             <ArrowUpward sx={{ fontSize: 16 }} />
                                                         </IconButton>
                                                     </span>
@@ -422,7 +425,7 @@ export default function Dashboard() {
                                 display: 'flex', gap: 1.5, px: 2, py: .4,
                                 borderLeft: `2px solid ${LOG_TONE(log.type)}`,
                             }}>
-                                <Box component="span" className="num" sx={{ color: '#5b6880', width: 52, flex: 'none' }}>
+                                <Box component="span" className="num" sx={{ color: c.ink3, width: 52, flex: 'none' }}>
                                     {(log.time || 0).toFixed(1)}s
                                 </Box>
                                 <Box component="span" sx={{ color: LOG_TONE(log.type), width: 108, flex: 'none', fontWeight: 500 }}>

@@ -13,9 +13,11 @@ import { c, series } from '../theme';
 import { Nav, Panel, Label, Metric, MetricStrip, Heading, Tag, MAX_W, Footer } from '../ui/primitives';
 
 const tip = {
-    borderRadius: 4, border: `1px solid ${c.line}`, boxShadow: 'none',
-    fontSize: 12, padding: '6px 9px',
+    background: c.sunken, borderRadius: 4, border: `1px solid ${c.line}`, boxShadow: 'none',
+    fontSize: 12, padding: '6px 9px', color: c.ink,
 };
+const tipItem = { color: c.ink };
+const tipLabel = { color: c.ink3 };
 
 export default function AnalyticsPage() {
     const [history, setHistory] = React.useState<any[]>([]);
@@ -81,7 +83,7 @@ export default function AnalyticsPage() {
     }));
 
     const split = [
-        { name: 'Hits', value: hits, color: c.accent },
+        { name: 'Hits', value: hits, color: c.hit },
         { name: 'Misses', value: misses, color: c.origin },
     ];
 
@@ -165,8 +167,8 @@ export default function AnalyticsPage() {
                                                 sx={{
                                                     font: 'inherit', fontSize: 11, cursor: 'pointer', px: .75, py: .125,
                                                     borderRadius: '4px', border: `1px solid ${inCompare ? c.accent : c.line}`,
-                                                    bgcolor: inCompare ? c.accent : 'transparent',
-                                                    color: inCompare ? '#fff' : c.ink3,
+                                                    bgcolor: inCompare ? c.ink : 'transparent',
+                                                    color: inCompare ? c.paper : c.ink3,
                                                 }}
                                             >
                                                 {inCompare ? 'comparing' : 'compare'}
@@ -205,9 +207,9 @@ export default function AnalyticsPage() {
                                             <CartesianGrid stroke={c.lineSoft} vertical={false} />
                                             <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: c.ink3, fontSize: 11 }} />
                                             <YAxis width={34} axisLine={false} tickLine={false} tick={{ fill: c.ink3, fontSize: 11 }} />
-                                            <Tooltip cursor={{ fill: c.sunken }} contentStyle={tip} />
+                                            <Tooltip cursor={{ fill: c.accentWash }} contentStyle={tip} itemStyle={tipItem} labelStyle={tipLabel} />
                                             <Legend iconType="square" iconSize={8} wrapperStyle={{ fontSize: 12, paddingTop: 6 }} />
-                                            <Bar dataKey="hits" name="Hits" fill={c.accent} radius={[2, 2, 0, 0]} maxBarSize={34} />
+                                            <Bar dataKey="hits" name="Hits" fill={c.hit} radius={[2, 2, 0, 0]} maxBarSize={34} />
                                             <Bar dataKey="misses" name="Misses" fill={c.lineStrong} radius={[2, 2, 0, 0]} maxBarSize={34} />
                                         </BarChart>
                                     </ResponsiveContainer>
@@ -221,7 +223,7 @@ export default function AnalyticsPage() {
                                             <Pie data={split} cx="50%" cy="50%" innerRadius={52} outerRadius={74} paddingAngle={2} dataKey="value" stroke="none">
                                                 {split.map((s) => <Cell key={s.name} fill={s.color} />)}
                                             </Pie>
-                                            <Tooltip contentStyle={tip} />
+                                            <Tooltip contentStyle={tip} itemStyle={tipItem} labelStyle={tipLabel} />
                                         </PieChart>
                                     </ResponsiveContainer>
                                 </Box>
@@ -261,7 +263,7 @@ export default function AnalyticsPage() {
                                         <CartesianGrid stroke={c.lineSoft} vertical={false} />
                                         <XAxis dataKey="i" hide />
                                         <YAxis domain={[0, 100]} width={38} unit="%" axisLine={false} tickLine={false} tick={{ fill: c.ink3, fontSize: 11 }} />
-                                        <Tooltip contentStyle={tip} labelFormatter={(l) => `t = ${Number(l) * 20} ms`} formatter={(v: any) => `${Number(v).toFixed(1)}%`} />
+                                        <Tooltip contentStyle={tip} itemStyle={tipItem} labelStyle={tipLabel} labelFormatter={(l) => `t = ${Number(l) * 20} ms`} formatter={(v: any) => `${Number(v).toFixed(1)}%`} />
                                         {compare.length > 1 && <Legend iconType="plainline" iconSize={14} wrapperStyle={{ fontSize: 12, paddingTop: 6 }} />}
                                         {compare.map((id, idx) => (
                                             <Area
@@ -282,7 +284,7 @@ export default function AnalyticsPage() {
                                         <RadarChart data={capability} outerRadius="72%">
                                             <PolarGrid stroke={c.lineSoft} />
                                             <PolarAngleAxis dataKey="metric" tick={{ fill: c.ink2, fontSize: 11 }} />
-                                            <Radar dataKey="value" stroke={c.accent} strokeWidth={1.5} fill={c.accent} fillOpacity={0.12} isAnimationActive={false} />
+                                            <Radar dataKey="value" stroke={c.hit} strokeWidth={1.5} fill={c.hit} fillOpacity={0.14} isAnimationActive={false} />
                                         </RadarChart>
                                     </ResponsiveContainer>
                                 </Box>

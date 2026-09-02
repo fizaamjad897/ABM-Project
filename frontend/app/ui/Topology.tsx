@@ -62,15 +62,15 @@ function NodeBox({
     kind: 'lb' | 'node' | 'db'; state: NodeState; tone: string;
 }) {
     const dead = state === 'dead';
-    const stroke = dead ? c.missLine : state === 'hit' ? c.hit : state === 'miss' ? c.accent : c.line;
-    const fg = dead ? '#c97a7a' : state === 'hit' ? c.hit : state === 'miss' ? c.accent : tone;
+    const stroke = dead ? c.missLine : state === 'hit' ? c.hit : state === 'miss' ? c.origin : c.line;
+    const fg = dead ? c.miss : state === 'hit' ? c.hit : state === 'miss' ? c.origin : tone;
     return (
         <g transform={`translate(${x - BOX_W / 2} ${y - BOX_H / 2})`} style={{ transition: 'opacity .3s' }}>
             {(state === 'hit' || state === 'miss') && (
                 <rect
                     x={-3} y={-3} width={BOX_W + 6} height={BOX_H + 6} rx={11}
-                    fill="none" stroke={state === 'hit' ? c.hit : c.accent} strokeWidth={1}
-                    opacity={0.28}
+                    fill="none" stroke={state === 'hit' ? c.hit : c.origin} strokeWidth={1}
+                    opacity={0.3}
                 />
             )}
             <rect
@@ -135,21 +135,21 @@ export default function Topology({
                     <g key={i}>
                         <path
                             d={e.inn} fill="none"
-                            stroke={dead ? c.missLine : c.accent}
+                            stroke={dead ? c.missLine : c.lineStrong}
                             strokeWidth={1.1}
                             strokeDasharray={dead ? '4 5' : undefined}
-                            opacity={dead ? 0.85 : 0.34}
+                            opacity={dead ? 0.9 : 0.85}
                         />
                         <path
                             d={e.out} fill="none"
                             stroke={dead ? c.missLine : c.origin}
                             strokeWidth={1.1}
                             strokeDasharray={dead ? '4 5' : undefined}
-                            opacity={dead ? 0.85 : 0.22}
+                            opacity={dead ? 0.9 : 0.4}
                         />
                         {running && !dead && (
                             <>
-                                <circle r={3.2} fill={c.accent} style={{
+                                <circle r={3.2} fill={c.ink2} style={{
                                     offsetPath: `path("${e.inn}")`, offsetRotate: '0deg',
                                     animation: `cn-packet ${1.6 + (i % 3) * 0.35}s linear infinite`,
                                     animationDelay: `${(i * 0.42) % 1.7}s`,
@@ -165,7 +165,7 @@ export default function Topology({
                 );
             })}
 
-            <NodeBox x={lb[0]} y={cy} label="Balancer" kind="lb" state="idle" tone={c.accent} />
+            <NodeBox x={lb[0]} y={cy} label="Balancer" kind="lb" state="idle" tone={c.ink2} />
             {ys.map((y, i) => (
                 <NodeBox
                     key={i} x={nx} y={y}

@@ -6,48 +6,48 @@
    ============================================================ */
 
 :root {
-  /* surfaces */
-  --paper: #fbfbfc;
-  --surface: #ffffff;
-  --sunken: #f6f7f9;
-  --inverse: #0b1220;
-  --inverse-2: #131c2e;
+  /* surfaces, darkest to lightest */
+  --paper: #0b0c0e;
+  --surface: #121418;
+  --sunken: #191c21;
+  --inverse: #08090b;
+  --inverse-2: #1b1e24;
 
   /* ink */
-  --ink: #0a0f1a;
-  --ink-2: #556072;
-  --ink-3: #8a93a3;
-  --ink-inverse: #e8ecf3;
-  --ink-inverse-2: #8b98ae;
+  --ink: #eceef1;
+  --ink-2: #9ba1ab;
+  --ink-3: #7b818b;
+  --ink-inverse: #eceef1;
+  --ink-inverse-2: #7b818b;
 
-  /* rules */
-  --line: #e4e7ec;
-  --line-soft: #eff1f4;
-  --line-strong: #cdd3dd;
+  /* rules — "soft" sits closer to the background */
+  --line: #23262c;
+  --line-soft: #1a1d22;
+  --line-strong: #343841;
 
-  /* accent — one hue, used for action and for the primary series */
-  --accent: #2563eb;
-  --accent-ink: #1d4ed8;
-  --accent-wash: #eff4ff;
-  --accent-line: #d5e2fd;
+  /* interactive: neutral by design, never a brand hue */
+  --accent: #eceef1;
+  --accent-ink: #ffffff;
+  --accent-wash: #1c1f25;
+  --accent-line: #33373f;
 
-  /* semantics — cache outcomes, not decoration */
-  --hit: #0e9f6e;
-  --hit-wash: #ecfdf5;
-  --hit-line: #b9e9d4;
-  --miss: #e02424;
-  --miss-wash: #fef2f2;
-  --miss-line: #fbd5d5;
-  --origin: #c2760b;
-  --origin-wash: #fffaeb;
-  --origin-line: #f6dfae;
+  /* semantics — the only colour in the product */
+  --hit: #3ecf8e;
+  --hit-wash: #0f2a20;
+  --hit-line: #1f4d3a;
+  --miss: #f2555a;
+  --miss-wash: #2a1416;
+  --miss-line: #4d2326;
+  --origin: #e8a33d;
+  --origin-wash: #2a2013;
+  --origin-line: #4d3a1c;
 
   /* geometry — two radii, no more */
   --r-sm: 4px;
   --r: 8px;
 
   /* the only elevation in the system, for overlays that must float */
-  --shadow: 0 6px 16px -8px rgba(10, 15, 26, .18), 0 1px 2px rgba(10, 15, 26, .04);
+  --shadow: 0 8px 24px -10px rgba(0, 0, 0, .7), 0 1px 2px rgba(0, 0, 0, .4);
 
   /* motion */
   --ease: cubic-bezier(.2, 0, 0, 1);
@@ -67,6 +67,7 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  color-scheme: dark;
 }
 
 html,
@@ -105,8 +106,8 @@ a {
 }
 
 ::selection {
-  background: var(--accent-wash);
-  color: var(--accent-ink);
+  background: #2b3038;
+  color: var(--ink);
 }
 
 /* Browser surfaces belong to the design system too. */
@@ -120,24 +121,24 @@ a {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--line-strong);
+  background: #2e323a;
   border: 3px solid var(--paper);
   border-radius: 6px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--ink-3);
+  background: var(--line-strong);
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ink);
   outline-offset: 2px;
   border-radius: 2px;
 }
 
-/* Dark surfaces carry their own scrollbar. */
+/* Recessed wells carry their own scrollbar. */
 .on-dark ::-webkit-scrollbar-thumb {
-  background: #2a3546;
+  background: #262a31;
   border-color: var(--inverse);
 }
 
