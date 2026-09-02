@@ -1,0 +1,1305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CacheNet — Motion Reel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   CACHENET — MOTION REEL
+   A 1600x900 stage that replays the product exactly as it ships:
+   the same tokens, geometry and drawn glyphs as the Next.js app
+   (frontend/app/globals.css, theme.ts, ui/Topology.tsx).
+   ============================================================ */
+
+:root{
+  --paper:#fbfbfc; --surface:#ffffff; --sunken:#f6f7f9;
+  --inverse:#0b1220; --inverse-2:#131c2e;
+  --ink:#0a0f1a; --ink-2:#556072; --ink-3:#8a93a3;
+  --ink-inv:#e8ecf3; --ink-inv-2:#8b98ae;
+  --line:#e4e7ec; --line-soft:#eff1f4; --line-strong:#cdd3dd;
+  --accent:#2563eb; --accent-ink:#1d4ed8; --accent-wash:#eff4ff; --accent-line:#d5e2fd;
+  --hit:#0e9f6e; --hit-wash:#ecfdf5; --hit-line:#b9e9d4;
+  --miss:#e02424; --miss-wash:#fef2f2; --miss-line:#fbd5d5;
+  --origin:#c2760b; --origin-wash:#fffaeb; --origin-line:#f6dfae;
+  --r-sm:4px; --r:8px;
+  --sans:'Inter', system-ui, -apple-system, sans-serif;
+  --mono:'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --ease:cubic-bezier(.2,0,0,1);
+  --expo:cubic-bezier(.16,1,.3,1);
+  --expo-io:cubic-bezier(.83,0,.17,1);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:#dfe3ea;font-family:var(--sans);color:var(--ink);
+  overflow:hidden;display:flex;flex-direction:column;
+  -webkit-font-smoothing:antialiased;font-feature-settings:"cv05" 1,"ss01" 1;
+}
+body.present{background:var(--paper)}
+::selection{background:var(--accent-wash);color:var(--accent-ink)}
+.num{font-variant-numeric:tabular-nums}
+.mono{font-family:var(--mono);font-variant-ligatures:none}
+
+/* ---------- stage ---------- */
+#viewport{flex:1 1 auto;position:relative;display:grid;place-items:center;padding:20px;min-height:0}
+#stage{
+  width:1600px;height:900px;position:relative;flex:none;background:var(--paper);
+  transform-origin:center center;border-radius:12px;overflow:hidden;
+  box-shadow:0 30px 70px -28px rgba(10,15,26,.34), 0 0 0 1px rgba(10,15,26,.07);
+  isolation:isolate;
+}
+body.present #stage{border-radius:0;box-shadow:none}
+body.present #viewport{padding:0}
+
+.scene{position:absolute;inset:0;display:none;overflow:hidden}
+.scene.live,.scene.exiting{display:block}
+.scene.live{animation:sceneIn .6s var(--expo) both}
+.scene.exiting{animation:sceneOut .34s var(--expo-io) both;pointer-events:none}
+@keyframes sceneIn{from{opacity:0;transform:scale(.992)}to{opacity:1;transform:none}}
+@keyframes sceneOut{from{opacity:1;transform:none}to{opacity:0;transform:scale(1.008)}}
+#stage.paused *{animation-play-state:paused !important}
+
+/* ---------- entrance grammar ---------- */
+.scene.live .fu{animation:fu .68s var(--expo) both;animation-delay:var(--d,0s)}
+.scene.live .fd{animation:fd .68s var(--expo) both;animation-delay:var(--d,0s)}
+.scene.live .fl{animation:fl .68s var(--expo) both;animation-delay:var(--d,0s)}
+.scene.live .fr{animation:fr .68s var(--expo) both;animation-delay:var(--d,0s)}
+.scene.live .fi{animation:fi .8s var(--expo) both;animation-delay:var(--d,0s)}
+.scene.live .pop{animation:pop .6s var(--expo) both;animation-delay:var(--d,0s)}
+@keyframes fu{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes fd{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
+@keyframes fl{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:none}}
+@keyframes fr{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+@keyframes fi{from{opacity:0}to{opacity:1}}
+@keyframes pop{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+
+/* ---------- product components (mirrors app/ui/primitives.tsx) ---------- */
+.panel{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden;display:flex;flex-direction:column}
+.panel-head{
+  flex:none;height:42px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;gap:16px;
+  border-bottom:1px solid var(--line);
+}
+.panel-head h4{font-size:12.5px;font-weight:600;color:var(--ink)}
+.panel-body{flex:1;min-height:0;padding:16px}
+.panel-body.flush{padding:0}
+.panel.dark{background:var(--inverse)}
+.panel.dark .panel-head{border-bottom-color:var(--inverse-2)}
+.panel.dark .panel-head h4{color:var(--ink-inv)}
+
+.tag{
+  display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;border-radius:var(--r-sm);
+  border:1px solid var(--line);background:var(--surface);color:var(--ink-2);
+  font-size:11.5px;font-weight:500;white-space:nowrap;
+}
+.tag.hit{background:var(--hit-wash);border-color:var(--hit-line);color:var(--hit)}
+.tag.miss{background:var(--miss-wash);border-color:var(--miss-line);color:var(--miss)}
+.tag.origin{background:var(--origin-wash);border-color:var(--origin-line);color:var(--origin)}
+.tag.accent{background:var(--accent-wash);border-color:var(--accent-line);color:var(--accent-ink)}
+.dot{width:6px;height:6px;border-radius:50%;flex:none;background:var(--hit)}
+.dot.origin{background:var(--origin)}
+.dot.miss{background:var(--miss)}
+.dot.mute{background:var(--ink-3)}
+.pulse{animation:pulse 1.8s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+.btn{
+  display:inline-flex;align-items:center;gap:7px;border:1px solid transparent;border-radius:var(--r-sm);
+  font-family:var(--sans);font-size:14px;font-weight:500;padding:8px 16px;
+  background:var(--accent);color:#fff;
+}
+.btn.lg{padding:12px 22px;font-size:15px}
+.btn.sm{padding:6px 12px;font-size:13px}
+.btn.ghost{background:var(--surface);color:var(--ink);border-color:var(--line)}
+.btn.danger{background:var(--miss)}
+
+.label{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3)}
+
+.mark{width:36px;height:36px;border-radius:9px;background:var(--ink);position:relative;flex:none}
+.mark i{position:absolute;border-radius:50%;background:var(--accent)}
+.mark .cc{background:#fff;width:20%;height:20%;left:40%;top:40%}
+.mark .a{width:16%;height:16%;left:19%;top:19%}
+.mark .b{width:16%;height:16%;right:19%;top:19%}
+.mark .cq{width:16%;height:16%;left:19%;bottom:19%}
+.mark .d{width:16%;height:16%;right:19%;bottom:19%}
+
+.nav{
+  height:56px;padding:0 40px;display:flex;align-items:center;justify-content:space-between;
+  background:rgba(255,255,255,.85);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);position:relative;z-index:8;
+}
+.nav-left{display:flex;align-items:center;gap:11px}
+.nav-word{font-size:15px;font-weight:600;letter-spacing:-.02em}
+.nav-right{display:flex;align-items:center;gap:24px}
+.nav-link{font-size:13.5px;color:var(--ink-2)}
+.nav-link.on{color:var(--ink);font-weight:600}
+
+/* metric strip: one border, internal rules */
+.strip{display:grid;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+.strip > div{padding:16px 20px;border-right:1px solid var(--line-soft)}
+.strip > div:last-child{border-right:0}
+.metric-val{margin-top:6px;font-size:26px;font-weight:600;letter-spacing:-.02em;line-height:1.1;color:var(--ink)}
+.metric-hint{margin-top:4px;font-size:12px;color:var(--ink-3)}
+
+.row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid var(--line-soft)}
+.row:last-child{border-bottom:0}
+
+/* sliders + switch */
+.slider{position:relative;height:3px;border-radius:2px;background:var(--line);margin-top:14px}
+.slider .fill{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:2px;width:var(--w)}
+.slider .knob{
+  position:absolute;top:50%;left:var(--w);width:13px;height:13px;border-radius:50%;
+  background:var(--surface);border:2px solid var(--accent);transform:translate(-50%,-50%);
+}
+.scene.live .slider .fill{animation:sfill .9s var(--expo) both;animation-delay:var(--d,0s)}
+.scene.live .slider .knob{animation:sknob .9s var(--expo) both;animation-delay:var(--d,0s)}
+@keyframes sfill{from{width:4%}to{width:var(--w)}}
+@keyframes sknob{from{left:4%}to{left:var(--w)}}
+.switch{width:34px;height:20px;border-radius:10px;background:var(--line-strong);position:relative;flex:none}
+.switch i{position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff}
+.scene.live .switch{animation:swOn .5s var(--expo) both;animation-delay:1.3s}
+.scene.live .switch i{animation:swThumb .5s var(--expo) both;animation-delay:1.3s}
+@keyframes swOn{to{background:var(--accent)}}
+@keyframes swThumb{to{left:17px}}
+.progress{height:3px;border-radius:2px;background:var(--line);overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);width:0}
+.scene.live .progress i{animation:prog 5s var(--ease) both;animation-delay:2.3s}
+@keyframes prog{to{width:100%}}
+
+/* charts */
+.grid-line{stroke:var(--line-soft);stroke-width:1}
+.axis text{font-family:var(--sans);font-size:11px;fill:var(--ink-3)}
+.plot-line{fill:none;stroke:var(--accent);stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1}
+.scene.live .plot-line{animation:draw var(--dur,5s) linear both;animation-delay:var(--d,.4s)}
+@keyframes draw{to{stroke-dashoffset:0}}
+.plot-area{clip-path:inset(0 100% 0 0)}
+.scene.live .plot-area{animation:wipe var(--dur,5s) linear both;animation-delay:var(--d,.4s)}
+@keyframes wipe{to{clip-path:inset(0 0 0 0)}}
+.plot-head{opacity:0}
+.scene.live .plot-head{animation:head var(--dur,5s) linear both;animation-delay:var(--d,.4s)}
+@keyframes head{0%{opacity:0;offset-distance:0%}5%{opacity:1}100%{opacity:1;offset-distance:100%}}
+.bar{transform:scaleY(0);transform-origin:bottom;transform-box:fill-box}
+.scene.live .bar{animation:bar .8s var(--expo) both;animation-delay:var(--d,0s)}
+@keyframes bar{to{transform:scaleY(1)}}
+.scene.live .seg{animation:sweep 1.2s var(--expo-io) both;animation-delay:var(--d,0s)}
+@keyframes sweep{from{stroke-dashoffset:var(--len)}to{stroke-dashoffset:0}}
+.radar-poly{transform-origin:center;transform-box:fill-box}
+.scene.live .radar-poly{animation:radar 1s var(--expo) both;animation-delay:.6s}
+@keyframes radar{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:scale(1)}}
+
+/* ---------- topology (mirrors app/ui/Topology.tsx) ---------- */
+.edge{fill:none;stroke-width:1.1}
+.edge.in{stroke:var(--accent);opacity:.34}
+.edge.out{stroke:var(--origin);opacity:.22}
+.edge.off{stroke:var(--miss-line);opacity:.85;stroke-dasharray:4 5}
+.packet{opacity:0}
+.scene.live .packet{animation:packet var(--pd,2s) linear infinite;animation-delay:var(--pdelay,0s)}
+@keyframes packet{
+  0%{offset-distance:0%;opacity:0}10%{opacity:1}88%{opacity:1}100%{offset-distance:100%;opacity:0}
+}
+.packet.halt{animation-play-state:paused;opacity:0 !important}
+.tbox{fill:var(--surface);stroke:var(--line);stroke-width:1.25;transition:stroke .3s var(--ease),fill .3s var(--ease)}
+.tlabel{font-family:var(--sans);font-size:9.5px;font-weight:600;letter-spacing:.05em;fill:var(--ink-3)}
+.tglyph{fill:none;stroke-width:1.4;stroke-linecap:round;transition:stroke .3s var(--ease)}
+.tnode .tglyph{stroke:var(--hit)}
+.tnode.lb .tglyph{stroke:var(--accent)}
+.tnode.db .tglyph{stroke:var(--origin)}
+.tring{fill:none;stroke-width:1;opacity:0}
+.tnode.hit .tbox{stroke:var(--hit)}
+.tnode.hit .tring{stroke:var(--hit);animation:ring .8s var(--expo) both}
+.tnode.miss .tbox{stroke:var(--accent)}
+.tnode.miss .tglyph{stroke:var(--accent)}
+.tnode.miss .tring{stroke:var(--accent);animation:ring .8s var(--expo) both}
+@keyframes ring{0%{opacity:.32}100%{opacity:0}}
+.tnode.dead .tbox{stroke:var(--miss-line);fill:var(--miss-wash)}
+.tnode.dead .tglyph{stroke:#c97a7a;opacity:.55}
+.tnode.dead .tlabel{fill:var(--miss)}
+.tnode.dying{animation:shake .44s cubic-bezier(.36,.07,.19,.97) 2}
+@keyframes shake{20%,80%{transform:translateX(2px)}40%,60%{transform:translateX(-3px)}}
+.tstamp{font-family:var(--sans);font-size:9px;font-weight:600;letter-spacing:.06em;fill:var(--miss);opacity:0}
+.tstamp.show{animation:fi .4s var(--expo) both}
+.tstamp.ok{fill:var(--hit)}
+
+/* ---------- console ---------- */
+.term{background:var(--inverse);height:100%;overflow:hidden;position:relative;font-family:var(--mono);font-size:12px}
+.term-inner{padding:4px 0}
+.log{display:flex;gap:12px;padding:3.5px 16px;border-left:2px solid #2a3546;animation:logIn .38s var(--expo) both}
+@keyframes logIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
+.log.hit{border-left-color:var(--hit)}
+.log.miss{border-left-color:#6f9bf0}
+.log.chaos{border-left-color:var(--origin)}
+.log .t{color:#5b6880;width:48px;flex:none}
+.log .k{width:104px;flex:none;font-weight:500;color:var(--ink-inv-2)}
+.log.hit .k{color:var(--hit)}
+.log.miss .k{color:#6f9bf0}
+.log.chaos .k{color:var(--origin)}
+.log .m{color:var(--ink-inv);opacity:.82}
+.log .m b{opacity:1;font-weight:500}
+
+/* ---------- analyst ---------- */
+.bubble{
+  max-width:88%;padding:10px 14px;border-radius:var(--r);font-size:13.5px;line-height:1.6;
+  border:1px solid var(--line);background:var(--sunken);color:var(--ink);align-self:flex-start;
+  animation:fu .5s var(--expo) both;
+}
+.bubble.me{align-self:flex-end;background:var(--accent);border-color:var(--accent);color:#fff}
+.bubble b{font-weight:600}
+.bubble code{font-family:var(--mono);font-size:11.5px;background:var(--surface);border:1px solid var(--line);padding:1px 4px;border-radius:3px}
+.typing{align-self:flex-start;display:flex;gap:5px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r);background:var(--sunken);animation:fu .4s var(--expo) both}
+.typing i{width:5px;height:5px;border-radius:50%;background:var(--ink-3);animation:pulse 1.4s ease-in-out infinite}
+.typing i:nth-child(2){animation-delay:.2s}
+.typing i:nth-child(3){animation-delay:.4s}
+.field{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);padding:9px 11px;font-size:13.5px}
+.field .ph{color:var(--ink-3)}
+.payload{font-family:var(--mono);font-size:12px;line-height:1.85;color:var(--ink-2);white-space:pre}
+.payload .k{color:var(--accent-ink)}
+.payload .v{color:var(--origin)}
+
+/* ---------- pointer ---------- */
+.cursor{position:absolute;top:0;left:0;width:22px;height:22px;z-index:60;pointer-events:none;opacity:0;
+  filter:drop-shadow(0 2px 4px rgba(10,15,26,.25))}
+.click{position:absolute;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--accent);
+  opacity:0;z-index:59;margin:-10px 0 0 -10px}
+@keyframes clickPop{0%{opacity:.9;transform:scale(.4)}100%{opacity:0;transform:scale(2.2)}}
+.scene.live #boot-cursor{animation:bootCursor 3s var(--expo) both;animation-delay:.3s}
+@keyframes bootCursor{
+  0%{opacity:0;transform:translate(1120px,340px)}
+  10%{opacity:1;transform:translate(1120px,340px)}
+  55%{transform:translate(1486px,26px)}
+  66%{transform:translate(1486px,26px) scale(.88)}
+  74%{transform:translate(1486px,26px) scale(1)}
+  90%{opacity:1;transform:translate(1486px,26px)}
+  100%{opacity:0;transform:translate(1476px,50px)}
+}
+.scene.live #boot-click{left:1494px;top:28px;animation:clickPop .55s var(--expo) both;animation-delay:1.95s}
+.press{animation:press .45s var(--expo) both}
+@keyframes press{0%{transform:scale(.94)}100%{transform:scale(1)}}
+
+/* ---------- scene: cold open ---------- */
+.open{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.open .mark{width:72px;height:72px;border-radius:18px;margin:0 auto 30px}
+.scene.live .open .mark{animation:pop .8s var(--expo) both}
+.wordmark{display:flex;justify-content:center;font-size:80px;font-weight:600;letter-spacing:-.035em;line-height:1}
+.wordmark span{display:inline-block}
+.scene.live .wordmark span{animation:letter .8s var(--expo) both;animation-delay:var(--d)}
+@keyframes letter{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
+.open-rule{height:1px;background:var(--line);width:0;margin:28px auto 24px}
+.scene.live .open-rule{animation:rule .9s var(--expo) both;animation-delay:1.1s}
+@keyframes rule{to{width:420px}}
+.open-sub{font-size:18px;color:var(--ink-2)}
+.open-meta{margin-top:26px;display:flex;gap:26px;justify-content:center;font-family:var(--mono);font-size:11.5px;color:var(--ink-3)}
+.corner{position:absolute;font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:.04em}
+
+/* ---------- scene: landing ---------- */
+.page{position:absolute;top:56px;left:0;right:0}
+.scene.live .page.scrolls{animation:scroll 8.4s var(--expo-io) both}
+@keyframes scroll{
+  0%,32%{transform:translateY(0)}
+  48%,64%{transform:translateY(-296px)}
+  80%,100%{transform:translateY(-470px)}
+}
+.wrap{max-width:1240px;margin:0 auto;padding:0 40px}
+.hero-h1{font-size:54px;font-weight:600;letter-spacing:-.03em;line-height:1.06}
+.hero-p{margin-top:22px;font-size:16.5px;line-height:1.7;color:var(--ink-2);max-width:46ch}
+.spec{display:flex;gap:22px;margin-top:34px;font-family:var(--mono);font-size:11.5px;color:var(--ink-3)}
+.trace{display:grid;grid-template-columns:repeat(6,1fr);border-top:1px solid var(--line);margin-top:36px}
+.trace > div{padding:18px 20px 24px 0;border-right:1px solid var(--line-soft);position:relative}
+.trace > div:last-child{border-right:0}
+.trace > div::before{content:"";position:absolute;top:-1px;left:0;width:28px;height:2px;background:var(--accent)}
+.trace > div.miss::before{background:var(--miss)}
+.trace .tt{font-family:var(--mono);font-size:12px;color:var(--accent)}
+.trace > div.miss .tt{color:var(--miss)}
+.trace h5{margin-top:10px;font-size:14.5px;font-weight:600}
+.trace p{margin-top:6px;font-size:13px;line-height:1.6;color:var(--ink-2)}
+.agents{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:0 20px}
+.agents > div{display:grid;grid-template-columns:180px 1fr;gap:24px;padding:13px 0;border-bottom:1px solid var(--line-soft)}
+.agents > div:last-child{border-bottom:0}
+.agents .n{font-family:var(--mono);font-size:12.5px;font-weight:500}
+.agents .r{font-size:13.5px;color:var(--ink-2)}
+
+.pill{
+  font-family:var(--mono);font-size:11.5px;padding:7px 13px;border-radius:var(--r-sm);
+  background:var(--surface);border:1px solid var(--line);color:var(--ink-2);
+}
+
+/* ---------- reel chrome ---------- */
+#chrome{flex:none;padding:0 20px 16px;display:flex;justify-content:center}
+body.present #chrome{display:none}
+.chrome-inner{
+  width:min(1600px,100%);background:var(--surface);border:1px solid var(--line);
+  border-radius:10px;padding:12px 16px 10px;display:flex;flex-direction:column;gap:10px;
+  box-shadow:0 8px 20px -14px rgba(10,15,26,.3);
+}
+#rail{display:flex;gap:4px}
+.chapter{position:relative;cursor:pointer;padding-top:15px;min-width:0}
+.chapter .bar{height:3px;border-radius:2px;background:var(--line);overflow:hidden}
+.chapter .bar i{display:block;height:100%;width:0;background:var(--line-strong)}
+.chapter.done .bar i{width:100%;background:var(--accent-line)}
+.chapter.now .bar i{background:var(--accent)}
+.chapter .name{
+  position:absolute;top:0;left:0;font-size:9.5px;font-weight:600;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;
+}
+.chapter.now .name{color:var(--accent)}
+.chapter:hover .name{color:var(--ink-2)}
+.controls{display:flex;align-items:center;gap:7px}
+.ctl{
+  width:32px;height:32px;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--surface);
+  display:grid;place-items:center;color:var(--ink-2);cursor:pointer;
+  transition:background-color .15s var(--ease),color .15s var(--ease),border-color .15s var(--ease);
+}
+.ctl:hover{background:var(--sunken);color:var(--ink)}
+.ctl:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ctl.main{background:var(--accent);border-color:var(--accent);color:#fff;width:36px;height:36px}
+.ctl.main:hover{background:var(--accent-ink);color:#fff}
+.ctl svg{width:16px;height:16px;fill:currentColor;display:block}
+.tc{font-family:var(--mono);font-size:11.5px;color:var(--ink-2);margin-left:6px}
+.tc b{color:var(--ink);font-weight:500}
+.scene-name{font-size:12.5px;font-weight:600;margin-left:12px;padding-left:12px;border-left:1px solid var(--line)}
+.keys{margin-left:auto;display:flex;gap:14px;font-size:11px;color:var(--ink-3)}
+.keys kbd{font-family:var(--mono);font-size:10px;background:var(--sunken);border:1px solid var(--line);
+  border-radius:3px;padding:1px 5px;color:var(--ink-2)}
+</style>
+</head>
+<body>
+<div id="viewport">
+  <div id="stage">
+
+    <!-- ═══════════ 1 · COLD OPEN ═══════════ -->
+    <section class="scene" id="s-open" data-dur="6000" data-name="Cold Open">
+      <div class="corner fi" style="--d:1.7s;top:40px;left:44px">AGENT-BASED MODEL</div>
+      <div class="corner fi" style="--d:1.7s;top:40px;right:44px">REEL 01 / 09</div>
+      <div class="corner fi" style="--d:1.9s;bottom:40px;left:44px">DISCRETE-EVENT SIMULATION</div>
+      <div class="corner fi" style="--d:1.9s;bottom:40px;right:44px">FIZA AMJAD · 2026</div>
+      <div class="open">
+        <div>
+          <span class="mark"><i class="cc"></i><i class="a"></i><i class="b"></i><i class="cq"></i><i class="d"></i></span>
+          <div class="wordmark">
+            <span style="--d:.45s">C</span><span style="--d:.5s">a</span><span style="--d:.55s">c</span><span style="--d:.6s">h</span><span style="--d:.65s">e</span><span style="--d:.7s">N</span><span style="--d:.75s">e</span><span style="--d:.8s">t</span>
+          </div>
+          <div class="open-rule"></div>
+          <p class="open-sub fu" style="--d:1.35s">Agent-based distributed cache simulator</p>
+          <div class="open-meta fi" style="--d:1.6s">
+            <span>PYTHON ENGINE</span><span>FASTAPI</span><span>WEBSOCKET</span><span>NEXT.JS 16</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════ 2 · LANDING ═══════════ -->
+    <section class="scene" id="s-land" data-dur="9400" data-name="Landing">
+      <div class="nav fd">
+        <div class="nav-left">
+          <span class="mark" style="width:22px;height:22px;border-radius:6px"><i class="cc"></i><i class="a"></i><i class="b"></i><i class="cq"></i><i class="d"></i></span>
+          <span class="nav-word">CacheNet</span>
+        </div>
+        <div class="nav-right">
+          <span class="nav-link">Dashboard</span><span class="nav-link">Analytics</span><span class="nav-link">Docs</span>
+          <span class="btn sm">Open dashboard</span>
+        </div>
+      </div>
+
+      <div class="page scrolls">
+        <!-- hero -->
+        <div class="wrap" style="padding-top:68px;padding-bottom:64px">
+          <div style="display:grid;grid-template-columns:5fr 7fr;gap:56px;align-items:center">
+            <div>
+              <h1 class="hero-h1 fu" style="--d:.18s">Simulate a distributed cache, agent by agent.</h1>
+              <p class="hero-p fu" style="--d:.28s">CacheNet models cache nodes, clients, a load balancer and an origin database as independent agents on a discrete-event clock. Run it and watch the hit ratio move — including the moment a node dies and the keyspace re-warms without it.</p>
+              <div class="fu" style="--d:.38s;display:flex;gap:12px;margin-top:32px">
+                <span class="btn lg">Run a simulation</span><span class="btn lg ghost">Read the docs</span>
+              </div>
+              <div class="spec fu" style="--d:.48s">
+                <span>Python engine</span><span>FastAPI</span><span>WebSocket telemetry</span><span>Next.js</span>
+              </div>
+            </div>
+            <div class="panel fu" style="--d:.3s">
+              <div class="panel-head"><h4>Model topology</h4><span class="tag hit"><i class="dot pulse"></i>Running</span></div>
+              <div class="panel-body" style="padding:20px"><svg id="land-topo" style="width:100%;display:block"></svg></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- trace -->
+        <div style="border-top:1px solid var(--line);background:var(--surface)">
+          <div class="wrap" style="padding-top:60px;padding-bottom:64px">
+            <h2 style="font-size:28px;font-weight:600;letter-spacing:-.02em">One write, one read, six events</h2>
+            <p style="margin-top:10px;font-size:15.5px;color:var(--ink-2);max-width:62ch">Nothing in the model is scheduled by hand. This is the sequence the engine produces for a single key when a write lands just before a read.</p>
+            <div class="trace">
+              <div><div class="tt">0 ms</div><h5>Client writes</h5><p>A client agent puts a new value for one key onto the queue.</p></div>
+              <div><div class="tt">5 ms</div><h5>Origin accepts</h5><p>The database records the write and issues invalidations.</p></div>
+              <div><div class="tt">10 ms</div><h5>Nodes invalidate</h5><p>Every cache node holding that key drops its copy.</p></div>
+              <div><div class="tt">15 ms</div><h5>Client reads</h5><p>A read for the same key reaches the load balancer.</p></div>
+              <div class="miss"><div class="tt">20 ms</div><h5>Cache miss</h5><p>The routed node no longer holds the key and asks the origin.</p></div>
+              <div><div class="tt">30 ms</div><h5>Client answered</h5><p>The value returns and the node caches it for next time.</p></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- agents -->
+        <div class="wrap" style="padding-top:60px;padding-bottom:60px">
+          <div style="display:grid;grid-template-columns:4fr 8fr;gap:56px">
+            <div>
+              <h2 style="font-size:28px;font-weight:600;letter-spacing:-.02em">Seven agents, one clock</h2>
+              <p style="margin-top:10px;font-size:15.5px;color:var(--ink-2)">Each agent only knows its own state and the messages it receives. Everything on the dashboard comes out of those local rules.</p>
+            </div>
+            <div class="agents">
+              <div><span class="n">load_balancer</span><span class="r">Routes each request to a node by key hash, keeping affinity stable.</span></div>
+              <div><span class="n">service_node</span><span class="r">Holds an LRU cache, answers reads, honours invalidation and TTL.</span></div>
+              <div><span class="n">client</span><span class="r">Generates the read and write traffic that drives the model.</span></div>
+              <div><span class="n">database</span><span class="r">The source of truth. Serves misses and invalidates on write.</span></div>
+              <div><span class="n">network</span><span class="r">Applies latency and loss to every message between agents.</span></div>
+              <div><span class="n">chaos_monkey</span><span class="r">Kills or degrades nodes at random to test what the cluster does next.</span></div>
+              <div><span class="n">observer</span><span class="r">Samples hits, misses and latency, and streams them to this interface.</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════ 3 · DASHBOARD ═══════════ -->
+    <section class="scene" id="s-boot" data-dur="9200" data-name="Dashboard">
+      <div class="nav fd">
+        <div class="nav-left">
+          <span class="mark" style="width:22px;height:22px;border-radius:6px"><i class="cc"></i><i class="a"></i><i class="b"></i><i class="cq"></i><i class="d"></i></span>
+          <span class="nav-word">CacheNet</span>
+        </div>
+        <div class="nav-right">
+          <span class="nav-link on">Dashboard</span><span class="nav-link">Analytics</span><span class="nav-link">Docs</span>
+          <span class="tag miss" id="boot-status"><i class="dot miss"></i>Engine offline</span>
+          <span class="btn sm" id="boot-run">Run model</span>
+        </div>
+      </div>
+
+      <div style="padding:24px 40px">
+        <div class="strip fu" style="--d:.4s;grid-template-columns:repeat(4,1fr)">
+          <div><span class="label">Hit ratio</span><div class="metric-val num" data-count="87.4" data-dp="1" data-suffix="%" data-delay="2200" data-dur="3200">0.0%</div><div class="metric-hint">1,121 of 1,284 reads</div></div>
+          <div><span class="label">Total reads</span><div class="metric-val num" data-count="1284" data-delay="2200" data-dur="3200">0</div><div class="metric-hint">4 nodes routing</div></div>
+          <div><span class="label">Cache misses</span><div class="metric-val num" data-count="163" data-delay="2200" data-dur="3200">0</div><div class="metric-hint">Served from origin</div></div>
+          <div><span class="label">Model clock</span><div class="metric-val num" data-count="100" data-dp="1" data-suffix="s" data-delay="2200" data-dur="4400">0.0s</div><div class="metric-hint">62% of cycle</div></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:256px minmax(0,1fr) 340px;gap:20px;margin-top:20px;align-items:start">
+          <!-- rail -->
+          <div style="display:flex;flex-direction:column;gap:20px">
+            <div class="panel fl" style="--d:.5s">
+              <div class="panel-head"><h4>Parameters</h4></div>
+              <div class="panel-body">
+                <div style="display:flex;justify-content:space-between;align-items:baseline">
+                  <span class="label">Nodes</span><span class="num" style="font-size:13px;font-weight:500">4</span>
+                </div>
+                <div class="slider" style="--w:33%;--d:.9s"><i class="fill"></i><i class="knob"></i></div>
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:22px">
+                  <span class="label">Cache per node</span><span class="num" style="font-size:13px;font-weight:500">150 MB</span>
+                </div>
+                <div class="slider" style="--w:22%;--d:1.05s"><i class="fill"></i><i class="knob"></i></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding-top:16px;border-top:1px solid var(--line-soft)">
+                  <div>
+                    <div style="font-size:13.5px">Chaos Monkey</div>
+                    <div style="font-size:12px;color:var(--ink-3);margin-top:2px">Kills nodes mid-run</div>
+                  </div>
+                  <span class="switch"><i></i></span>
+                </div>
+                <div style="margin-top:20px">
+                  <span class="label">Cycle progress</span>
+                  <div class="progress" style="margin-top:8px"><i></i></div>
+                </div>
+              </div>
+            </div>
+            <div class="panel fl" style="--d:.58s">
+              <div class="panel-head"><h4>Agents</h4></div>
+              <div class="panel-body" id="boot-agents"></div>
+            </div>
+          </div>
+
+          <!-- centre -->
+          <div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+            <div class="panel fu" style="--d:.55s">
+              <div class="panel-head"><h4>Hit ratio over model time</h4><span class="tag hit"><i class="dot pulse"></i>Streaming</span></div>
+              <div class="panel-body" style="padding:12px 12px 8px 0">
+                <svg id="boot-chart" viewBox="0 0 640 210" style="width:100%;height:210px;display:block"></svg>
+              </div>
+            </div>
+            <div class="panel fu" style="--d:.62s">
+              <div class="panel-head"><h4>Topology</h4><span class="mono" style="font-size:11px;color:var(--ink-3)">4 nodes · 150 MB</span></div>
+              <div class="panel-body" style="padding:16px"><svg id="boot-topo" style="width:100%;display:block"></svg></div>
+            </div>
+          </div>
+
+          <!-- analyst -->
+          <div class="panel fr" style="--d:.66s;height:614px">
+            <div class="panel-head"><h4>Analyst</h4><span class="mono" style="font-size:11px;color:var(--ink-3)">llama-3.3-70b</span></div>
+            <div style="flex:1;padding:16px;display:flex;flex-direction:column;gap:12px;min-height:0">
+              <div class="bubble" style="animation-delay:2.4s">Model armed. Ask me anything about the run once telemetry starts arriving.</div>
+            </div>
+            <div style="flex:none;padding:12px;border-top:1px solid var(--line)">
+              <div class="field"><span class="ph">Ask about this run…</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cursor" id="boot-cursor"><svg viewBox="0 0 24 24"><path d="M5.5 2.5 19 12.2l-6.1.6 3.3 6.5-2.6 1.3-3.3-6.5-4.3 4.4z" fill="#fff" stroke="#0a0f1a" stroke-width="1.4" stroke-linejoin="round"/></svg></div>
+      <div class="click" id="boot-click"></div>
+    </section>
+    <!-- ═══════════ 4 · TELEMETRY ═══════════ -->
+    <section class="scene" id="s-tele" data-dur="8600" data-name="Live Telemetry">
+      <div style="position:absolute;inset:0;padding:64px;display:grid;grid-template-columns:380px minmax(0,1fr);gap:48px;align-items:center">
+        <div>
+          <span class="tag accent fu">WebSocket stream</span>
+          <div class="fu" style="--d:.1s;margin-top:22px">
+            <div class="num" style="font-size:60px;font-weight:600;letter-spacing:-.03em;line-height:1" data-count="87.4" data-dp="1" data-suffix="%" data-delay="500" data-dur="5000">0.0%</div>
+            <div class="label" style="margin-top:8px">Cache hit ratio</div>
+          </div>
+          <p class="fu" style="--d:.2s;margin:24px 0 28px;font-size:15px;line-height:1.7;color:var(--ink-2)">
+            The observer agent samples the event queue every 20&nbsp;ms of model time and pushes telemetry over a single socket. The plot is the live feed, not a replay.
+          </p>
+          <div class="panel fu" style="--d:.3s">
+            <div class="panel-body" style="padding:4px 18px">
+              <div class="row"><span style="font-size:13.5px;color:var(--ink-2)">Requests served</span><span class="mono num" style="font-size:13px" data-count="1284" data-delay="600" data-dur="4800">0</span></div>
+              <div class="row"><span style="font-size:13.5px;color:var(--ink-2)">Cache misses</span><span class="mono num" style="font-size:13px" data-count="163" data-delay="600" data-dur="4800">0</span></div>
+              <div class="row"><span style="font-size:13.5px;color:var(--ink-2)">Unique keys</span><span class="mono num" style="font-size:13px" data-count="240" data-delay="600" data-dur="4800">0</span></div>
+              <div class="row"><span style="font-size:13.5px;color:var(--ink-2)">Avg latency</span><span class="mono num" style="font-size:13px" data-count="4.6" data-dp="1" data-suffix="ms" data-delay="600" data-dur="4800">0.0ms</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="panel fu" style="--d:.15s">
+          <div class="panel-head"><h4>Hit ratio over model time</h4><span class="tag hit"><i class="dot pulse"></i>Streaming</span></div>
+          <div class="panel-body" style="padding:20px 22px 14px 0">
+            <svg id="tele-chart" viewBox="0 0 1000 470" style="width:100%;height:470px;display:block"></svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════ 5 · TOPOLOGY ═══════════ -->
+    <section class="scene" id="s-topo" data-dur="16000" data-name="System Topology">
+      <div style="position:absolute;inset:0;padding:48px 64px">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:24px">
+          <div>
+            <h2 class="fu" style="font-size:30px;font-weight:600;letter-spacing:-.025em">Topology</h2>
+            <p class="fu" style="--d:.08s;margin-top:8px;font-size:15px;color:var(--ink-2)">Every message crosses the network agent. Latency, loss and partition are simulated, not assumed.</p>
+          </div>
+          <div class="fu" style="--d:.12s;display:flex;gap:10px">
+            <span class="tag">4 nodes</span><span class="tag">150 MB LRU</span><span class="tag origin"><i class="dot origin"></i>Chaos armed</span>
+          </div>
+        </div>
+        <div class="panel fu" style="--d:.16s">
+          <div class="panel-head">
+            <div style="display:flex;align-items:center;gap:12px">
+              <span class="label">Hit ratio</span>
+              <span class="mono num" id="topo-ratio" style="font-size:13px;font-weight:500">87.4%</span>
+            </div>
+            <span class="tag miss" id="topo-badge" style="opacity:0">Chaos Monkey · node_2 terminated</span>
+          </div>
+          <div class="panel-body" style="padding:18px"><svg id="topo" style="width:100%;display:block"></svg></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════ 6 · EVENT LOG ═══════════ -->
+    <section class="scene" id="s-logs" data-dur="8600" data-name="Event Log">
+      <div style="position:absolute;inset:0;padding:56px 64px;display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:24px">
+        <div class="panel fu" style="height:100%">
+          <div class="panel-head"><h4>Event log</h4><span class="mono" style="font-size:11px;color:var(--ink-3)">heapq · O(log n)</span></div>
+          <div class="panel-body flush"><div class="term"><div class="term-inner" id="log-stream"></div></div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:20px">
+          <div class="panel fr" style="--d:.12s">
+            <div class="panel-head"><h4>Agents</h4></div>
+            <div class="panel-body" id="log-agents"></div>
+          </div>
+          <div class="panel fr" style="--d:.2s">
+            <div class="panel-head"><h4>Queue state</h4></div>
+            <div class="panel-body">
+              <div class="row"><span style="font-size:13.5px;color:var(--ink-2)">Events processed</span><span class="mono num" style="font-size:13px" data-count="7412" data-delay="300" data-dur="4200">0</span></div>
+              <div class="row"><span style="font-size:13.5px;color:var(--ink-2)">Pending events</span><span class="mono num" style="font-size:13px" data-count="38" data-delay="300" data-dur="4200">0</span></div>
+              <div class="row"><span style="font-size:13.5px;color:var(--ink-2)">Invalidations</span><span class="mono num" style="font-size:13px" data-count="96" data-delay="300" data-dur="4200">0</span></div>
+              <div class="row"><span style="font-size:13.5px;color:var(--ink-2)">Model clock</span><span class="mono num" style="font-size:13px" data-count="100" data-dp="1" data-suffix="s" data-delay="300" data-dur="4200">0.0s</span></div>
+            </div>
+          </div>
+          <div class="panel fr" style="--d:.28s">
+            <div class="panel-body">
+              <div style="font-size:13.5px;font-weight:600;margin-bottom:6px">Emergent, not scripted</div>
+              <div style="font-size:13px;line-height:1.65;color:var(--ink-2)">Thundering herds and cascading misses arise from agent rules alone — nothing in this log was authored.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════ 7 · ANALYST ═══════════ -->
+    <section class="scene" id="s-ai" data-dur="10500" data-name="Analyst">
+      <div style="position:absolute;inset:0;padding:56px 64px;display:grid;grid-template-columns:minmax(0,1fr) 600px;gap:44px;align-items:center">
+        <div>
+          <h2 class="fu" style="font-size:30px;font-weight:600;letter-spacing:-.025em">Analyst</h2>
+          <p class="fu" style="--d:.08s;margin:10px 0 26px;font-size:15.5px;line-height:1.7;color:var(--ink-2);max-width:52ch">
+            The dashboard posts the live metrics envelope to <span class="mono" style="font-size:13px;color:var(--accent-ink);background:var(--accent-wash);border:1px solid var(--accent-line);border-radius:3px;padding:1px 5px">/ai/analyze</span>. The analyst reads the same numbers you do and explains what the agents actually did.
+          </p>
+          <div class="panel fu" style="--d:.16s">
+            <div class="panel-head"><h4>POST /ai/analyze</h4><span class="mono" style="font-size:11px;color:var(--ink-3)">groq · llama-3.3-70b</span></div>
+            <div class="panel-body" style="padding:18px 20px">
+<div class="payload">{
+  <span class="k">"query"</span>: <span class="v">"why did the hit ratio drop?"</span>,
+  <span class="k">"metrics"</span>: {
+    <span class="k">"hits"</span>: <span class="v">1121</span>, <span class="k">"misses"</span>: <span class="v">163</span>,
+    <span class="k">"unique_keys"</span>: <span class="v">240</span>,
+    <span class="k">"agent_stats"</span>: {
+      <span class="k">"node_2"</span>: { <span class="k">"alive"</span>: <span class="v">false</span> }
+    }
+  }
+}</div>
+            </div>
+          </div>
+        </div>
+        <div class="panel fu" style="--d:.12s;height:630px">
+          <div class="panel-head"><h4>Analyst</h4><span class="tag hit"><i class="dot pulse"></i>Connected</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:12px;padding:16px;min-height:0" id="chat-body"></div>
+          <div style="flex:none;padding:12px;border-top:1px solid var(--line)">
+            <div class="field"><span id="chat-typed"></span><span class="ph" id="chat-ph">Ask about this run…</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════ 8 · ANALYTICS ═══════════ -->
+    <section class="scene" id="s-analytics" data-dur="9800" data-name="Analytics">
+      <div style="position:absolute;inset:0;padding:48px 64px">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px">
+          <h2 class="fu" style="font-size:30px;font-weight:600;letter-spacing:-.025em">Run report</h2>
+          <span class="mono fu" style="--d:.08s;font-size:12px;color:var(--ink-3)">4 nodes · chaos armed · 100.0 s</span>
+        </div>
+        <div class="strip fu" style="--d:.14s;grid-template-columns:repeat(4,1fr)">
+          <div><span class="label">Hit ratio</span><div class="metric-val num" data-count="87.4" data-dp="1" data-suffix="%" data-delay="400" data-dur="2200">0.0%</div></div>
+          <div><span class="label">Requests</span><div class="metric-val num" data-count="1284" data-delay="400" data-dur="2200">0</div></div>
+          <div><span class="label">Unique keys</span><div class="metric-val num" data-count="240" data-delay="400" data-dur="2200">0</div></div>
+          <div><span class="label">Nodes</span><div class="metric-val num" data-count="4" data-delay="400" data-dur="2200">0</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:20px;margin-top:20px">
+          <div class="panel fu" style="--d:.3s">
+            <div class="panel-head"><h4>Reads per node</h4></div>
+            <div class="panel-body" style="padding:14px 14px 6px 0"><svg id="ana-bars" viewBox="0 0 520 545" style="width:100%;height:545px;display:block"></svg></div>
+          </div>
+          <div class="panel fu" style="--d:.38s">
+            <div class="panel-head"><h4>Read outcomes</h4></div>
+            <div class="panel-body" style="padding:14px 16px">
+              <svg id="ana-donut" viewBox="0 0 280 330" style="width:100%;height:330px;display:block"></svg>
+              <div style="margin-top:10px">
+                <div class="row"><span style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink-2)"><i style="width:8px;height:8px;border-radius:2px;background:var(--accent);display:block"></i>Hits</span><span class="num" style="font-size:13px;font-weight:500">87.3%</span></div>
+                <div class="row"><span style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink-2)"><i style="width:8px;height:8px;border-radius:2px;background:var(--origin);display:block"></i>Misses</span><span class="num" style="font-size:13px;font-weight:500">12.7%</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="panel fu" style="--d:.46s">
+            <div class="panel-head"><h4>Capability profile</h4></div>
+            <div class="panel-body" style="padding:14px"><svg id="ana-radar" viewBox="0 0 380 545" style="width:100%;height:545px;display:block"></svg></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════ 9 · OUTRO ═══════════ -->
+    <section class="scene" id="s-outro" data-dur="7400" data-name="Stack &amp; Credits">
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">
+        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;max-width:900px;margin-bottom:52px">
+          <span class="pill fu" style="--d:.08s">PYTHON · DISCRETE-EVENT ENGINE</span>
+          <span class="pill fu" style="--d:.14s">FASTAPI</span>
+          <span class="pill fu" style="--d:.2s">WEBSOCKET TELEMETRY</span>
+          <span class="pill fu" style="--d:.26s">LRU CACHE · O(1)</span>
+          <span class="pill fu" style="--d:.32s">NEXT.JS 16</span>
+          <span class="pill fu" style="--d:.38s">REACT 19</span>
+          <span class="pill fu" style="--d:.44s">MATERIAL UI</span>
+          <span class="pill fu" style="--d:.5s">RECHARTS</span>
+          <span class="pill fu" style="--d:.56s">GROQ LLAMA-3.3-70B</span>
+        </div>
+        <span class="mark pop" style="--d:.7s;width:60px;height:60px;border-radius:15px;margin-bottom:24px"><i class="cc"></i><i class="a"></i><i class="b"></i><i class="cq"></i><i class="d"></i></span>
+        <div class="fu" style="--d:.8s;font-size:60px;font-weight:600;letter-spacing:-.035em;line-height:1">CacheNet</div>
+        <p class="fu" style="--d:.88s;margin-top:14px;font-size:17px;color:var(--ink-2)">Agent-based distributed cache simulator</p>
+        <div class="fu" style="--d:1.05s;margin-top:34px"><span class="tag accent" style="height:34px;padding:0 16px;font-family:var(--mono);font-size:13px">abm-project-gray.vercel.app</span></div>
+      </div>
+    </section>
+
+  </div><!-- /#stage -->
+</div><!-- /#viewport -->
+
+<div id="chrome">
+  <div class="chrome-inner">
+    <div id="rail"></div>
+    <div class="controls">
+      <button class="ctl main" id="c-play" title="Play / pause (Space)"><svg viewBox="0 0 24 24"><path d="M6 19h4V5H6zm8-14v14h4V5z"/></svg></button>
+      <button class="ctl" id="c-prev" title="Previous scene (←)"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg></button>
+      <button class="ctl" id="c-next" title="Next scene (→)"><svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6zM16 6h2v12h-2z"/></svg></button>
+      <button class="ctl" id="c-restart" title="Restart (R)"><svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8"/></svg></button>
+      <button class="ctl" id="c-present" title="Presentation mode (F)"><svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7zm-2-4h2V7h3V5H5zm12 7h-3v2h5v-5h-2zM14 5v2h3v3h2V5z"/></svg></button>
+      <span class="tc"><b id="tc-now">0:00</b> / <span id="tc-tot">0:00</span></span>
+      <span class="scene-name" id="scene-name">Cold Open</span>
+      <span class="keys"><span><kbd>Space</kbd> play</span><span><kbd>←</kbd><kbd>→</kbd> scene</span><span><kbd>F</kbd> present</span></span>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  'use strict';
+
+  /* ══════════════════ helpers ══════════════════ */
+
+  function rng(seed) {
+    return function () {
+      seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+      var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  var r1 = function (n) { return Math.round(n * 10) / 10; };
+  var $ = function (s, c) { return (c || document).querySelector(s); };
+  var $$ = function (s, c) { return [].slice.call((c || document).querySelectorAll(s)); };
+
+  var stage = $('#stage'), viewport = $('#viewport');
+  function fit() {
+    var pad = document.body.classList.contains('present') ? 0 : 40;
+    var s = Math.min((viewport.clientWidth - pad) / 1600, (viewport.clientHeight - pad) / 900);
+    stage.style.transform = 'scale(' + s + ')';
+  }
+  window.addEventListener('resize', fit);
+
+  /* ══════════════════ series + charts ══════════════════ */
+
+  function hitSeries(n) {
+    var rand = rng(9), out = [];
+    var base = function (x) { return 80 + 7 * Math.sin(x * 9.5) + 3 * Math.sin(x * 23); };
+    for (var i = 0; i < n; i++) {
+      var x = i / (n - 1), v;
+      if (x < 0.12) { var k = x / 0.12; v = base(0.12) * (k * k * (3 - 2 * k)); }
+      else v = base(x);
+      if (x > 0.55 && x < 0.79) v -= 31 * Math.sin(Math.PI * ((x - 0.55) / 0.24));
+      v += (rand() - 0.5) * 3.2;
+      out.push(Math.max(1.5, Math.min(96, v)));
+    }
+    out[n - 1] = 87.4;
+    return out;
+  }
+
+  function pathFrom(pts, X, Y) {
+    var d = 'M ' + r1(X(0)) + ' ' + r1(Y(pts[0]));
+    for (var i = 0; i < pts.length - 1; i++) {
+      var p0 = pts[Math.max(0, i - 1)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(pts.length - 1, i + 2)];
+      var x1 = X(i), x2 = X(i + 1), dx = (x2 - x1) / 3;
+      d += ' C ' + r1(x1 + dx) + ' ' + r1(Y(p1) + (Y(p2) - Y(p0)) / 6)
+         + ', ' + r1(x2 - dx) + ' ' + r1(Y(p2) - (Y(p3) - Y(p1)) / 6)
+         + ', ' + r1(x2) + ' ' + r1(Y(p2));
+    }
+    return d;
+  }
+
+  var uid = 0;
+  function buildChart(svg, o) {
+    var w = o.w, h = o.h, pad = o.pad, pts = o.pts, n = pts.length;
+    var X = function (i) { return pad.l + (w - pad.l - pad.r) * (i / (n - 1)); };
+    var Y = function (v) { return pad.t + (h - pad.t - pad.b) * (1 - v / 100); };
+    var line = pathFrom(pts, X, Y);
+    var area = line + ' L ' + r1(X(n - 1)) + ' ' + r1(h - pad.b) + ' L ' + r1(X(0)) + ' ' + r1(h - pad.b) + ' Z';
+    var gid = 'g' + (++uid), grid = '', labels = '';
+    [0, 25, 50, 75, 100].forEach(function (v) {
+      grid += '<line class="grid-line" x1="' + pad.l + '" y1="' + r1(Y(v)) + '" x2="' + (w - pad.r) + '" y2="' + r1(Y(v)) + '"/>';
+      labels += '<text x="' + (pad.l - 10) + '" y="' + r1(Y(v) + 4) + '" text-anchor="end">' + v + '%</text>';
+    });
+    svg.innerHTML =
+      '<defs><linearGradient id="' + gid + '" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0%" stop-color="#2563eb" stop-opacity="0.16"/>' +
+      '<stop offset="100%" stop-color="#2563eb" stop-opacity="0"/></linearGradient></defs>' +
+      '<g>' + grid + '</g><g class="axis">' + labels + '</g>' +
+      '<path class="plot-area" d="' + area + '" fill="url(#' + gid + ')" style="--dur:' + o.dur + 's;--d:' + o.delay + 's"/>' +
+      '<path class="plot-line" pathLength="1" d="' + line + '" style="--dur:' + o.dur + 's;--d:' + o.delay + 's"/>' +
+      '<circle class="plot-head" r="4.5" fill="#2563eb" stroke="#fff" stroke-width="2" ' +
+      'style="offset-path:path(\'' + line + '\');offset-rotate:0deg;--dur:' + o.dur + 's;--d:' + o.delay + 's"/>';
+  }
+
+  /* ══════════════════ topology (mirrors app/ui/Topology.tsx) ══════════════════ */
+
+  var VW = 720, BW = 74, BH = 64;
+  var GLYPH = {
+    lb: '<path d="M2 9 h4"/><path d="M6 9 C 9 9, 9 3, 12 3"/><path d="M6 9 h6"/><path d="M6 9 C 9 9, 9 15, 12 15"/>' +
+        '<circle cx="14.2" cy="3" r="1.6"/><circle cx="14.2" cy="9" r="1.6"/><circle cx="14.2" cy="15" r="1.6"/>',
+    node: '<rect x="4.2" y="4.2" width="9.6" height="9.6" rx="1.6"/>' +
+          '<path d="M7 1.6 v2.6 M11 1.6 v2.6 M7 13.8 v2.6 M11 13.8 v2.6"/>' +
+          '<path d="M1.6 7 h2.6 M1.6 11 h2.6 M13.8 7 h2.6 M13.8 11 h2.6"/>',
+    db: '<ellipse cx="9" cy="4.4" rx="6" ry="2.4"/>' +
+        '<path d="M3 4.4 v9.2 c0 1.33 2.69 2.4 6 2.4 s6-1.07 6-2.4 V4.4"/>' +
+        '<path d="M3 9 c0 1.33 2.69 2.4 6 2.4 s6-1.07 6-2.4"/>',
+  };
+
+  function edgePath(a, b) {
+    var mx = (a[0] + b[0]) / 2;
+    return 'M ' + a[0] + ' ' + a[1] + ' C ' + mx + ' ' + a[1] + ', ' + mx + ' ' + b[1] + ', ' + b[0] + ' ' + b[1];
+  }
+
+  function tnode(x, y, id, kind, label, cls) {
+    return '<g class="tnode ' + cls + '" id="' + id + '" transform="translate(' + (x - BW / 2) + ' ' + (y - BH / 2) + ')">' +
+      '<rect class="tring" x="-3" y="-3" width="' + (BW + 6) + '" height="' + (BH + 6) + '" rx="11"/>' +
+      '<rect class="tbox" width="' + BW + '" height="' + BH + '" rx="8"/>' +
+      '<g class="tglyph" transform="translate(' + (BW / 2 - 10) + ' 13) scale(1.15)">' + GLYPH[kind] + '</g>' +
+      '<text class="tlabel" x="' + BW / 2 + '" y="' + (BH - 13) + '" text-anchor="middle">' + label + '</text>' +
+      '<text class="tstamp" x="' + BW / 2 + '" y="-9" text-anchor="middle" id="' + id + '-tag"></text></g>';
+  }
+
+  function buildTopo(svg, o) {
+    var n = o.count, H = o.height, cy = H / 2, top = 48;
+    var span = H - top * 2;
+    var ys = [];
+    for (var i = 0; i < n; i++) ys.push(n === 1 ? cy : top + span * i / (n - 1));
+    var nx = VW / 2, lbx = 70, dbx = VW - 70;
+    svg.setAttribute('viewBox', '0 0 ' + VW + ' ' + H);
+    var rnd = rng(31), edges = '', packets = '', nodes = '';
+    ys.forEach(function (y, i) {
+      var inn = edgePath([lbx + BW / 2 + 6, cy], [nx - BW / 2 - 6, y]);
+      var out = edgePath([nx + BW / 2 + 6, y], [dbx - BW / 2 - 6, cy]);
+      edges += '<path class="edge in in-' + i + '" d="' + inn + '"/>';
+      edges += '<path class="edge out out-' + i + '" d="' + out + '"/>';
+      if (o.running) {
+        for (var k = 0; k < (o.perEdge || 1); k++) {
+          packets += '<circle class="packet p-in-' + i + '" r="3.2" fill="#2563eb" style="offset-path:path(\'' + inn +
+            '\');offset-rotate:0deg;--pd:' + (1.6 + rnd() * .9).toFixed(2) + 's;--pdelay:' + (rnd() * 2).toFixed(2) + 's"/>';
+        }
+        packets += '<circle class="packet p-out-' + i + '" r="2.8" fill="#c2760b" opacity=".85" style="offset-path:path(\'' + out +
+          '\');offset-rotate:0deg;--pd:' + (2 + rnd() * .6).toFixed(2) + 's;--pdelay:' + (.8 + rnd() * 1.9).toFixed(2) + 's"/>';
+      }
+      nodes += tnode(nx, y, (o.prefix || 'n') + '-' + i, 'node', 'CACHE ' + ('0' + i).slice(-2), '');
+    });
+    nodes = tnode(lbx, cy, (o.prefix || 'n') + '-lb', 'lb', 'BALANCER', 'lb') + nodes +
+      tnode(dbx, cy, (o.prefix || 'n') + '-db', 'db', 'ORIGIN', 'db');
+    svg.innerHTML = edges + packets + nodes;
+  }
+
+  /* ══════════════════ agent lists ══════════════════ */
+
+  var AGENT_ROWS = [
+    ['load_balancer', '<i class="dot"></i>'],
+    ['node_0', '<span class="mono num" style="font-size:11.5px;color:var(--ink-3)">142/18</span>'],
+    ['node_1', '<span class="mono num" style="font-size:11.5px;color:var(--ink-3)">168/21</span>'],
+    ['node_2', '<span style="font-size:11.5px;color:var(--miss);font-weight:500">down</span>'],
+    ['node_3', '<span class="mono num" style="font-size:11.5px;color:var(--ink-3)">151/24</span>'],
+    ['database', '<i class="dot origin"></i>'],
+    ['observer', '<i class="dot pulse"></i>'],
+  ];
+  function agentList(el, rows) {
+    el.innerHTML = rows.map(function (r) {
+      return '<div class="row"><span class="mono" style="font-size:12px;color:var(--ink-2)">' + r[0] + '</span>' + r[1] + '</div>';
+    }).join('');
+  }
+
+  /* ══════════════════ per-scene builders ══════════════════ */
+
+  var BUILD = {
+    's-land': function () {
+      var svg = $('#land-topo');
+      svg.style.maxWidth = '620px'; svg.style.margin = '0 auto';
+      buildTopo(svg, { count: 4, height: 330, running: true, perEdge: 1, prefix: 'l' });
+    },
+    's-boot': function () {
+      buildChart($('#boot-chart'), { w: 640, h: 210, pad: { l: 40, r: 10, t: 12, b: 18 }, pts: hitSeries(46), dur: 5.4, delay: 2.3 });
+      var svg = $('#boot-topo');
+      svg.style.maxWidth = '640px'; svg.style.margin = '0 auto';
+      buildTopo(svg, { count: 4, height: 344, running: true, perEdge: 1, prefix: 'b' });
+      // At boot every node is healthy — the failure belongs to the topology scene.
+      var idle = '<span class="mono" style="font-size:11.5px;color:var(--ink-3)">—</span>';
+      agentList($('#boot-agents'), [
+        ['load_balancer', '<i class="dot"></i>'],
+        ['node_0', idle], ['node_1', idle], ['node_2', idle], ['node_3', idle],
+        ['database', '<i class="dot origin"></i>'],
+        ['observer', '<i class="dot pulse"></i>'],
+      ]);
+    },
+    's-tele': function () {
+      buildChart($('#tele-chart'), { w: 1000, h: 470, pad: { l: 52, r: 16, t: 20, b: 32 }, pts: hitSeries(64), dur: 5.2, delay: .5 });
+    },
+    's-topo': function () {
+      var svg = $('#topo');
+      svg.style.maxWidth = '1080px'; svg.style.margin = '0 auto';
+      buildTopo(svg, { count: 4, height: 400, running: true, perEdge: 2, prefix: 't' });
+    },
+    's-logs': function () { agentList($('#log-agents'), AGENT_ROWS); },
+    's-analytics': function () {
+      /* reads per node */
+      var data = [['n0', 142, 18], ['n1', 168, 21], ['n2', 96, 62], ['n3', 151, 24]];
+      var W = 520, H = 545, bl = 36, bb = 32, bt = 12, max = 180;
+      var gy = function (v) { return bt + (H - bt - bb) * (1 - v / max); };
+      var html = '';
+      [0, 45, 90, 135, 180].forEach(function (v) {
+        html += '<line class="grid-line" x1="' + bl + '" y1="' + gy(v) + '" x2="' + W + '" y2="' + gy(v) + '"/>' +
+          '<text class="lbl" x="' + (bl - 9) + '" y="' + (gy(v) + 4) + '" text-anchor="end" font-size="11" fill="#8a93a3" font-family="Inter,sans-serif">' + v + '</text>';
+      });
+      var step = (W - bl) / data.length;
+      data.forEach(function (d, i) {
+        var cx = bl + step * i + step / 2;
+        html += '<rect class="bar" x="' + (cx - 34) + '" y="' + gy(d[1]) + '" width="32" height="' + (H - bb - gy(d[1])) + '" rx="2" fill="#2563eb" style="--d:' + (.6 + i * .08) + 's"/>';
+        html += '<rect class="bar" x="' + (cx + 2) + '" y="' + gy(d[2]) + '" width="32" height="' + (H - bb - gy(d[2])) + '" rx="2" fill="#cdd3dd" style="--d:' + (.66 + i * .08) + 's"/>';
+        html += '<text x="' + cx + '" y="' + (H - 8) + '" text-anchor="middle" font-size="11" fill="#8a93a3" font-family="Inter,sans-serif">' + d[0] + '</text>';
+      });
+      $('#ana-bars').innerHTML = html;
+
+      /* read outcomes */
+      var R = 98, SW = 36, C = 2 * Math.PI * R, hits = .873;
+      var seg = function (frac, off, color, delay) {
+        var len = C * frac;
+        return '<circle class="seg" r="' + R + '" cx="140" cy="160" fill="none" stroke="' + color + '" stroke-width="' + SW +
+          '" stroke-dasharray="' + r1(len - 5) + ' ' + r1(C - len + 5) + '" transform="rotate(' + (-90 + off * 360) + ' 140 160)" ' +
+          'style="--len:' + r1(len) + ';--d:' + delay + 's;stroke-dashoffset:0"/>';
+      };
+      $('#ana-donut').innerHTML = seg(hits, 0, '#2563eb', .6) + seg(1 - hits, hits, '#c2760b', .8);
+
+      /* capability profile */
+      var cx = 190, cy = 258, rad = 148;
+      var axes = [['Hit ratio', 87], ['Latency', 78], ['Throughput', 64], ['Coverage', 80], ['Scale', 80]];
+      var pt = function (i, f) {
+        var a = -Math.PI / 2 + i * 2 * Math.PI / axes.length;
+        return [r1(cx + Math.cos(a) * rad * f), r1(cy + Math.sin(a) * rad * f)];
+      };
+      var rh = '';
+      [.25, .5, .75, 1].forEach(function (f) {
+        rh += '<polygon points="' + axes.map(function (_, i) { return pt(i, f).join(','); }).join(' ') + '" fill="none" stroke="#eff1f4"/>';
+      });
+      axes.forEach(function (a, i) {
+        var e = pt(i, 1), l = pt(i, 1.2);
+        rh += '<line x1="' + cx + '" y1="' + cy + '" x2="' + e[0] + '" y2="' + e[1] + '" stroke="#eff1f4"/>' +
+          '<text x="' + l[0] + '" y="' + (l[1] + 4) + '" text-anchor="middle" font-size="11" fill="#556072" font-family="Inter,sans-serif">' + a[0] + '</text>';
+      });
+      rh += '<polygon class="radar-poly" points="' + axes.map(function (a, i) { return pt(i, a[1] / 100).join(','); }).join(' ') +
+        '" fill="#2563eb" fill-opacity="0.12" stroke="#2563eb" stroke-width="1.5" stroke-linejoin="round"/>';
+      $('#ana-radar').innerHTML = rh;
+    },
+  };
+
+  /* ══════════════════ resets ══════════════════ */
+
+  var RESET = {
+    's-boot': function () {
+      var c = $('#boot-status'); c.className = 'tag miss'; c.innerHTML = '<i class="dot miss"></i>Engine offline';
+      var b = $('#boot-run'); b.className = 'btn sm'; b.textContent = 'Run model';
+    },
+    's-topo': function () {
+      ['t-lb', 't-0', 't-1', 't-2', 't-3', 't-db'].forEach(function (id) {
+        var el = $('#' + id); if (!el) return;
+        el.setAttribute('class', 'tnode' + (id === 't-lb' ? ' lb' : id === 't-db' ? ' db' : ''));
+        var tag = $('#' + id + '-tag'); if (tag) { tag.setAttribute('class', 'tstamp'); tag.textContent = ''; }
+      });
+      var b = $('#topo-badge'); b.style.opacity = '0';
+      var rt = $('#topo-ratio'); rt.textContent = '87.4%'; rt.style.color = '';
+      $$('#topo .edge').forEach(function (e) { e.classList.remove('off'); });
+      $$('#topo .packet').forEach(function (p) { p.classList.remove('halt'); });
+    },
+    's-logs': function () { var s = $('#log-stream'); s.innerHTML = ''; s.style.transform = 'translateY(0)'; },
+    's-ai': function () {
+      $('#chat-body').innerHTML = ''; $('#chat-typed').textContent = ''; $('#chat-ph').style.display = '';
+    },
+  };
+
+  /* ══════════════════ log content ══════════════════ */
+
+  var LOGS = [
+    ['0.0', 'INIT', 'Simulation clock started · 4 service nodes registered', ''],
+    ['0.4', 'CACHE_MISS', 'node_1 key=<b>user:8821</b> → forwarding to origin', 'miss'],
+    ['1.2', 'DB_READ', 'database key=<b>user:8821</b> lat=18.4ms', ''],
+    ['1.6', 'CACHE_FILL', 'node_1 stored key=<b>user:8821</b> ttl=30s', ''],
+    ['2.1', 'CACHE_HIT', 'node_1 key=<b>user:8821</b> lat=2.1ms', 'hit'],
+    ['2.8', 'CACHE_HIT', 'node_3 key=<b>item:4417</b> lat=1.9ms', 'hit'],
+    ['3.5', 'WRITE', 'client_0 key=<b>item:4417</b> v2 → database', ''],
+    ['4.0', 'INVALIDATE', 'database → node_0, node_2, node_3 key=<b>item:4417</b>', ''],
+    ['4.6', 'CACHE_MISS', 'node_3 key=<b>item:4417</b> invalidated · cold read', 'miss'],
+    ['5.3', 'CACHE_HIT', 'node_0 key=<b>sess:0912</b> lat=1.7ms', 'hit'],
+    ['6.1', 'EVICT', 'node_2 LRU evicted 3 keys · capacity 150MB', ''],
+    ['6.9', 'CACHE_HIT', 'node_2 key=<b>user:1043</b> lat=2.4ms', 'hit'],
+    ['7.4', 'CHAOS', 'ChaosMonkey terminated <b>node_2</b>', 'chaos'],
+    ['7.5', 'REHASH', 'load_balancer re-hashed keyspace → node_1, node_3', ''],
+    ['7.9', 'CACHE_MISS', 'node_1 key=<b>user:1043</b> re-routed · cold miss', 'miss'],
+    ['8.2', 'CACHE_MISS', 'node_3 key=<b>cart:7781</b> re-routed · cold miss', 'miss'],
+    ['8.6', 'DB_READ', 'database 14 queued reads · pressure rising', ''],
+    ['9.1', 'CACHE_MISS', 'node_1 key=<b>prof:3320</b> cold miss', 'miss'],
+    ['9.8', 'CACHE_FILL', 'node_3 re-warmed 22 keys', ''],
+    ['10.4', 'CACHE_HIT', 'node_3 key=<b>cart:7781</b> lat=2.0ms', 'hit'],
+    ['11.0', 'CACHE_HIT', 'node_1 key=<b>user:1043</b> lat=1.8ms', 'hit'],
+    ['11.7', 'RECOVER', '<b>node_2</b> rejoined · accepting traffic', ''],
+    ['12.3', 'CACHE_HIT', 'node_0 key=<b>item:4417</b> lat=2.2ms', 'hit'],
+    ['12.9', 'CACHE_HIT', 'node_2 key=<b>sess:0912</b> lat=2.6ms', 'hit'],
+    ['13.4', 'OBSERVER', 'hit_ratio=<b>84.1%</b> requests=1284 misses=163', ''],
+  ];
+
+  function addLog(i, instant) {
+    var L = LOGS[i], s = $('#log-stream');
+    var d = document.createElement('div');
+    d.className = 'log' + (L[3] ? ' ' + L[3] : '');
+    if (instant) d.style.animation = 'none';
+    d.innerHTML = '<span class="t num">' + L[0] + 's</span><span class="k">' + L[1] + '</span><span class="m">' + L[2] + '</span>';
+    s.appendChild(d);
+    var box = s.parentElement, over = s.scrollHeight - box.clientHeight;
+    s.style.transition = 'transform .3s var(--expo)';
+    s.style.transform = 'translateY(' + (over > 0 ? -over : 0) + 'px)';
+  }
+
+  function flash(id, kind, ms) {
+    var el = $('#' + id); if (!el) return;
+    var base = el.getAttribute('class') || '';
+    if (base.indexOf('dead') >= 0) return;
+    el.setAttribute('class', base.replace(/ (hit|miss)/g, '') + ' ' + kind);
+    setTimeout(function () {
+      var cur = el.getAttribute('class') || '';
+      if (cur.indexOf('dead') < 0) el.setAttribute('class', cur.replace(/ (hit|miss)/g, ''));
+    }, ms || 660);
+  }
+
+  /* ══════════════════ cues ══════════════════ */
+
+  var CUES = {
+    's-boot': function () {
+      return [
+        [900, function () {
+          var c = $('#boot-status'); c.className = 'tag hit press';
+          c.innerHTML = '<i class="dot pulse"></i>Engine connected';
+        }],
+        [2050, function () {
+          var b = $('#boot-run'); b.className = 'btn sm danger press'; b.textContent = 'Stop';
+        }],
+      ];
+    },
+
+    's-topo': function () {
+      var c = [];
+      [1400, 1850, 2300, 2750, 3200, 3650, 4100, 4550, 5000, 5450, 5900, 6350].forEach(function (t, i) {
+        c.push([t, (function (k) { return function () { flash('t-' + (k % 4), 'hit'); }; })(i)]);
+      });
+      c.push([2900, function () { flash('t-1', 'miss'); flash('t-db', 'miss', 900); }]);
+      c.push([5100, function () { flash('t-3', 'miss'); flash('t-db', 'miss', 900); }]);
+
+      c.push([6900, function () {
+        $('#topo-badge').style.opacity = '1';
+        var n = $('#t-2'); n.setAttribute('class', 'tnode dying');
+      }]);
+      c.push([7600, function () {
+        $('#t-2').setAttribute('class', 'tnode dead');
+        var tag = $('#t-2-tag'); tag.textContent = 'TERMINATED'; tag.setAttribute('class', 'tstamp show');
+        $$('#topo .in-2, #topo .out-2').forEach(function (e) { e.classList.add('off'); });
+        $$('#topo .p-in-2, #topo .p-out-2').forEach(function (p) { p.classList.add('halt'); });
+        var rt = $('#topo-ratio'); rt.style.color = 'var(--miss)';
+        tween(rt, 87.4, 61.2, 3400, 1, '%');
+      }]);
+      [8200, 8500, 8800, 9100, 9400, 9700, 10000, 10300, 10600, 10900].forEach(function (t, i) {
+        c.push([t, (function (k) {
+          return function () { flash('t-' + [0, 1, 3, 1, 3, 0, 1, 3, 0, 1][k], k < 5 ? 'miss' : 'hit'); };
+        })(i)]);
+      });
+      c.push([8700, function () { flash('t-db', 'miss', 1500); }]);
+
+      c.push([11500, function () {
+        $('#topo-badge').style.opacity = '0';
+        $('#t-2').setAttribute('class', 'tnode');
+        var tag = $('#t-2-tag'); tag.textContent = 'RESTORED'; tag.setAttribute('class', 'tstamp ok show');
+        $$('#topo .in-2, #topo .out-2').forEach(function (e) { e.classList.remove('off'); });
+        $$('#topo .p-in-2, #topo .p-out-2').forEach(function (p) { p.classList.remove('halt'); });
+        var rt = $('#topo-ratio'); rt.style.color = '';
+        tween(rt, 61.2, 84.1, 3000, 1, '%');
+      }]);
+      [12100, 12500, 12900, 13300, 13700, 14100, 14500, 14900, 15300].forEach(function (t, i) {
+        c.push([t, (function (k) { return function () { flash('t-' + (k % 4), 'hit'); }; })(i + 2)]);
+      });
+      c.push([13100, function () { var t = $('#t-2-tag'); t.setAttribute('class', 'tstamp ok'); }]);
+      return c;
+    },
+
+    's-logs': function () {
+      var seed = 8, c = [[0, function () { for (var i = 0; i < seed; i++) addLog(i, true); }]];
+      for (var i = seed; i < LOGS.length; i++) {
+        c.push([420 + (i - seed) * 330, (function (k) { return function () { addLog(k); }; })(i)]);
+      }
+      return c;
+    },
+
+    's-ai': function () {
+      var q = 'Why did the hit ratio drop at t = 61s?';
+      var body = $('#chat-body'), typed = $('#chat-typed'), ph = $('#chat-ph');
+      var add = function (cls, html, delay) {
+        var b = document.createElement('div');
+        b.className = 'bubble' + (cls ? ' ' + cls : '');
+        if (delay != null) b.style.animationDelay = delay + 's';
+        b.innerHTML = html; body.appendChild(b); return b;
+      };
+      return [
+        [150, function () { add('', 'Model armed. Ask me anything about the run once telemetry starts arriving.'); }],
+        [700, function () { ph.style.display = 'none'; streamText(typed, q, 1500); }],
+        [2250, function () { typed.textContent = ''; ph.style.display = ''; add('me', q); }],
+        [2750, function () {
+          var t = document.createElement('div'); t.className = 'typing'; t.id = 'dots';
+          t.innerHTML = '<i></i><i></i><i></i>'; body.appendChild(t);
+        }],
+        [4300, function () {
+          var d = $('#dots'); if (d) d.remove();
+          var b = add('', '<b>node_2</b> was terminated by the Chaos Monkey at <code>t = 61.4s</code>.');
+          b.id = 'answer';
+        }],
+        [5900, function () {
+          var b = $('#answer'); if (b) b.innerHTML += '<br><br>Its share of the keyspace re-hashed onto <b>node_1</b> and <b>node_3</b>, so every key it held returned a cold miss — the ratio fell <b>87.4% → 61.2%</b> across roughly six seconds.';
+        }],
+        [7600, function () {
+          var b = $('#answer'); if (b) b.innerHTML += '<br><br>Recovery came from re-warming, not repair: once the re-routed keys were cached, the ratio climbed back to <b>84.1%</b>.';
+        }],
+        [9100, function () { add('', 'Raising node count or lowering TTL would shorten the trough, but not remove it.', 0); }],
+      ];
+    },
+  };
+
+  /* ══════════════════ tweens ══════════════════ */
+
+  var tweens = [];
+  function fmt(v, dp, suf) {
+    var s = dp ? v.toFixed(dp) : String(Math.round(v));
+    if (!dp && Math.abs(v) >= 1000) s = s.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return s + (suf || '');
+  }
+  function tween(el, from, to, dur, dp, suf, delay) {
+    tweens.push({ el: el, from: from, to: to, dur: dur, dp: dp || 0, suf: suf || '', delay: delay || 0, t: 0, kind: 'num' });
+  }
+  function streamText(el, text, dur) {
+    tweens.push({ el: el, text: text, dur: dur, delay: 0, t: 0, kind: 'text' });
+  }
+  function collectCounters(root) {
+    $$('[data-count]', root).forEach(function (el) {
+      if (el.dataset.orig === undefined) el.dataset.orig = el.textContent;
+      el.textContent = el.dataset.orig;
+      tweens.push({
+        el: el, from: 0, to: +el.dataset.count, dur: +(el.dataset.dur || 2000),
+        dp: +(el.dataset.dp || 0), suf: el.dataset.suffix || '', delay: +(el.dataset.delay || 0),
+        t: 0, kind: 'num',
+      });
+    });
+  }
+  function runTweens(dt) {
+    for (var i = tweens.length - 1; i >= 0; i--) {
+      var w = tweens[i]; w.t += dt;
+      var p = (w.t - w.delay) / w.dur;
+      if (p < 0) continue;
+      if (p > 1) p = 1;
+      if (w.kind === 'num') w.el.textContent = fmt(w.from + (w.to - w.from) * (1 - Math.pow(1 - p, 3)), w.dp, w.suf);
+      else w.el.textContent = w.text.slice(0, Math.round(w.text.length * p));
+      if (p === 1) tweens.splice(i, 1);
+    }
+  }
+
+  /* ══════════════════ timeline ══════════════════ */
+
+  var scenes = $$('.scene').map(function (el) { return { el: el, dur: +el.dataset.dur, name: el.dataset.name }; });
+  var total = scenes.reduce(function (a, s) { return a + s.dur; }, 0);
+  var idx = -1, t = 0, playing = true, cues = [], cueI = 0, last = 0, built = {};
+
+  var rail = $('#rail');
+  scenes.forEach(function (s, i) {
+    var ch = document.createElement('div');
+    ch.className = 'chapter';
+    ch.style.flex = s.dur + ' 1 0';
+    ch.innerHTML = '<span class="name">' + s.name + '</span><span class="bar"><i></i></span>';
+    ch.addEventListener('click', function () { enter(i); });
+    rail.appendChild(ch);
+  });
+  var chapters = $$('.chapter');
+
+  function enter(i) {
+    scenes.forEach(function (x, j) {
+      if (j !== i && x.el.classList.contains('live')) {
+        x.el.classList.remove('live'); x.el.classList.add('exiting');
+        (function (el) { setTimeout(function () { el.classList.remove('exiting'); }, 400); })(x.el);
+      }
+    });
+    idx = i; t = 0; cueI = 0; tweens = [];
+    var s = scenes[i], id = s.el.id;
+    if (RESET[id]) RESET[id]();
+    if (!built[id] && BUILD[id]) {
+      s.el.style.visibility = 'hidden'; s.el.style.display = 'block';
+      BUILD[id]();
+      s.el.style.display = ''; s.el.style.visibility = '';
+      built[id] = true;
+    }
+    s.el.classList.add('live');
+    collectCounters(s.el);
+    cues = (CUES[id] ? CUES[id]() : []).sort(function (a, b) { return a[0] - b[0]; });
+    chapters.forEach(function (ch, j) {
+      ch.classList.toggle('now', j === i);
+      ch.classList.toggle('done', j < i);
+      var bar = ch.querySelector('.bar i');
+      if (j > i) bar.style.width = '0%';
+      if (j < i) bar.style.width = '100%';
+    });
+    $('#scene-name').textContent = s.name;
+  }
+
+  function mmss(ms) {
+    var sec = Math.floor(ms / 1000);
+    return Math.floor(sec / 60) + ':' + ('0' + (sec % 60)).slice(-2);
+  }
+  function before() { var a = 0; for (var i = 0; i < idx; i++) a += scenes[i].dur; return a; }
+
+  function frame(ts) {
+    if (!last) last = ts;
+    var dt = ts - last; last = ts;
+    if (dt > 120) dt = 120;
+    if (playing) {
+      t += dt;
+      while (cueI < cues.length && cues[cueI][0] <= t) { cues[cueI][1](); cueI++; }
+      runTweens(dt);
+      chapters[idx].querySelector('.bar i').style.width = Math.min(100, t / scenes[idx].dur * 100) + '%';
+      $('#tc-now').textContent = mmss(before() + t);
+      if (t >= scenes[idx].dur) enter((idx + 1) % scenes.length);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  /* ══════════════════ controls ══════════════════ */
+
+  function setPlaying(p) {
+    playing = p;
+    stage.classList.toggle('paused', !p);
+    $('#c-play').innerHTML = p
+      ? '<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6zm8-14v14h4V5z"/></svg>'
+      : '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+  }
+  $('#c-play').addEventListener('click', function () { setPlaying(!playing); });
+  $('#c-prev').addEventListener('click', function () { enter(t > 1200 ? idx : (idx + scenes.length - 1) % scenes.length); });
+  $('#c-next').addEventListener('click', function () { enter((idx + 1) % scenes.length); });
+  $('#c-restart').addEventListener('click', function () { enter(0); setPlaying(true); });
+  $('#c-present').addEventListener('click', togglePresent);
+
+  function togglePresent() {
+    document.body.classList.toggle('present');
+    if (document.body.classList.contains('present')) {
+      if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(function () { });
+    } else if (document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen().catch(function () { });
+    }
+    requestAnimationFrame(fit);
+  }
+  document.addEventListener('fullscreenchange', function () {
+    if (!document.fullscreenElement) document.body.classList.remove('present');
+    requestAnimationFrame(fit);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === ' ') { e.preventDefault(); setPlaying(!playing); }
+    else if (e.key === 'ArrowRight') enter((idx + 1) % scenes.length);
+    else if (e.key === 'ArrowLeft') enter(t > 1200 ? idx : (idx + scenes.length - 1) % scenes.length);
+    else if (e.key === 'r' || e.key === 'R') { enter(0); setPlaying(true); }
+    else if (e.key === 'f' || e.key === 'F') togglePresent();
+    else if (e.key === 'Escape' && document.body.classList.contains('present')) togglePresent();
+  });
+
+  /* ══════════════════ go ══════════════════ */
+
+  $('#tc-tot').textContent = mmss(total);
+  fit();
+  var m = /scene=(\d+)/.exec(location.hash);
+  enter(m ? Math.min(scenes.length, Math.max(1, +m[1])) - 1 : 0);
+  requestAnimationFrame(frame);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+})();
+</script>
+</body>
+</html>

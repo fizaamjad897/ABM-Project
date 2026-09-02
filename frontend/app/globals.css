@@ -1,61 +1,118 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+/* ============================================================
+   CacheNet — design tokens
+   The product is a measuring instrument. Structure comes from
+   rules and alignment; colour is semantic, never decorative.
+   Fonts are loaded by next/font in layout.tsx — never re-import.
+   ============================================================ */
 
 :root {
-  /* Core Palette - School/Academic Vibe */
-  --bg: #ffffff;
-  --bg-secondary: #f8fafc;
-  --text-main: #0f172a;
-  /* High contrast slate */
-  --text-muted: #64748b;
-  --primary: #2563eb;
-  /* School blue */
-  --primary-light: #dbeafe;
-  --secondary: #eab308;
-  /* Pencil yellow */
-  --accent: #ec4899;
-  /* Marker pink */
-  --success: #10b981;
-  --warning: #f59e0b;
-  --error: #ef4444;
+  /* surfaces */
+  --paper: #fbfbfc;
+  --surface: #ffffff;
+  --sunken: #f6f7f9;
+  --inverse: #0b1220;
+  --inverse-2: #131c2e;
 
-  /* Borders & Grids */
-  --border: #e2e8f0;
-  --grid-line: #f1f5f9;
-  --paper-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --card-radius: 12px;
+  /* ink */
+  --ink: #0a0f1a;
+  --ink-2: #556072;
+  --ink-3: #8a93a3;
+  --ink-inverse: #e8ecf3;
+  --ink-inverse-2: #8b98ae;
+
+  /* rules */
+  --line: #e4e7ec;
+  --line-soft: #eff1f4;
+  --line-strong: #cdd3dd;
+
+  /* accent — one hue, used for action and for the primary series */
+  --accent: #2563eb;
+  --accent-ink: #1d4ed8;
+  --accent-wash: #eff4ff;
+  --accent-line: #d5e2fd;
+
+  /* semantics — cache outcomes, not decoration */
+  --hit: #0e9f6e;
+  --hit-wash: #ecfdf5;
+  --hit-line: #b9e9d4;
+  --miss: #e02424;
+  --miss-wash: #fef2f2;
+  --miss-line: #fbd5d5;
+  --origin: #c2760b;
+  --origin-wash: #fffaeb;
+  --origin-line: #f6dfae;
+
+  /* geometry — two radii, no more */
+  --r-sm: 4px;
+  --r: 8px;
+
+  /* the only elevation in the system, for overlays that must float */
+  --shadow: 0 6px 16px -8px rgba(10, 15, 26, .18), 0 1px 2px rgba(10, 15, 26, .04);
+
+  /* motion */
+  --ease: cubic-bezier(.2, 0, 0, 1);
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 * {
-  box-sizing: border-box;
-  padding: 0;
   margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
-  background-color: var(--bg);
-  color: var(--text-main);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  scroll-behavior: smooth;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "cv05" 1, "ss01" 1;
 }
 
-/* THE "SCHOOL VIBE" CHECKERED BACKGROUND */
-body,
-.app-container {
-  background-color: #ffffff !important;
-  background-image:
-    linear-gradient(var(--grid-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-  background-size: 30px 30px;
-  /* Graph paper size */
-  background-attachment: fixed;
+/* Numbers in an instrument never reflow between frames. */
+[data-num],
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
-/* Custom Scrollbar - Minimal & Academic */
+code,
+pre,
+kbd,
+samp,
+.mono {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-ligatures: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: var(--accent-wash);
+  color: var(--accent-ink);
+}
+
+/* Browser surfaces belong to the design system too. */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
@@ -63,70 +120,67 @@ body,
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 10px;
+  background: var(--line-strong);
+  border: 3px solid var(--paper);
+  border-radius: 6px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--ink-3);
 }
 
-/* School Card Style - "Paper" feel */
-.paper-card {
-  background: #ffffff;
-  border: 1px solid var(--border);
-  border-radius: var(--card-radius);
-  box-shadow: var(--paper-shadow);
-  transition: all 0.2s ease;
-  overflow: hidden;
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
-.paper-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-  border-color: #cbd5e1;
+/* Dark surfaces carry their own scrollbar. */
+.on-dark ::-webkit-scrollbar-thumb {
+  background: #2a3546;
+  border-color: var(--inverse);
 }
 
-/* Glassmorphism Refined for Light Theme */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+/* ---------- rule-based scaffolding ---------- */
+
+.hairline {
+  border: 0;
+  border-top: 1px solid var(--line);
 }
 
-/* Typography Enhancements */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  color: var(--text-main);
-  letter-spacing: -0.025em;
-  font-weight: 800;
+/* A ruled row: the workhorse of every data list in the product. */
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line-soft);
 }
 
-/* Animations */
-@keyframes float {
-  0% {
-    transform: translateY(0px);
+.row:last-child {
+  border-bottom: 0;
+}
+
+/* ---------- motion ---------- */
+
+@keyframes cn-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
 
-  50% {
-    transform: translateY(-10px);
-  }
-
-  100% {
-    transform: translateY(0px);
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
-.animate-float {
-  animation: float 4s ease-in-out infinite;
+.enter {
+  animation: cn-fade-up .5s var(--ease-out) both;
 }
 
-@keyframes pulse-soft {
+@keyframes cn-pulse {
 
   0%,
   100% {
@@ -134,61 +188,43 @@ h6 {
   }
 
   50% {
-    opacity: 0.7;
+    opacity: .35;
   }
 }
 
-.pulse-soft {
-  animation: pulse-soft 2s ease-in-out infinite;
+.pulse {
+  animation: cn-pulse 1.8s ease-in-out infinite;
 }
 
-/* Code block - Terminal/Calculator vibe */
-pre,
-code {
-  font-family: 'JetBrains Mono', monospace !important;
-  font-size: 0.9em;
+/* Packets travelling the topology edges. */
+@keyframes cn-packet {
+  0% {
+    offset-distance: 0%;
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  88% {
+    opacity: 1;
+  }
+
+  100% {
+    offset-distance: 100%;
+    opacity: 0;
+  }
 }
 
-/* Navigation Link - underline effect */
-.nav-link {
-  position: relative;
-  text-decoration: none;
-  color: var(--text-muted);
-  font-weight: 600;
-  transition: color 0.2s;
-}
+@media (prefers-reduced-motion: reduce) {
 
-.nav-link:hover {
-  color: var(--primary);
-}
-
-.nav-link::after {
-  content: '';
-  position: absolute;
-  width: 0;
-  height: 2px;
-  bottom: -4px;
-  left: 0;
-  background-color: var(--primary);
-  transition: width 0.2s;
-}
-
-.nav-link:hover::after {
-  width: 100%;
-}
-
-/* Background Grids for specific sections */
-.bg-grid-blue {
-  background-image:
-    linear-gradient(rgba(37, 99, 235, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(37, 99, 235, 0.05) 1px, transparent 1px);
-  background-size: 20px 20px;
-}
-
-/* "Highlighter" effect */
-.highlight {
-  background: linear-gradient(120deg, rgba(234, 179, 8, 0.2) 0%, rgba(234, 179, 8, 0.2) 100%);
-  background-repeat: no-repeat;
-  background-size: 100% 0.4em;
-  background-position: 0 88%;
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
