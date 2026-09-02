@@ -6,7 +6,7 @@
 <title>CacheNet — Motion Reel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
    CACHENET — MOTION REEL
@@ -22,12 +22,14 @@
   --ink-inv:#eceef1; --ink-inv-2:#7b818b;
   --line:#23262c; --line-soft:#1a1d22; --line-strong:#343841;
   --accent:#eceef1; --accent-ink:#ffffff; --accent-wash:#1c1f25; --accent-line:#33373f;
-  --hit:#3ecf8e; --hit-wash:#0f2a20; --hit-line:#1f4d3a;
-  --miss:#f2555a; --miss-wash:#2a1416; --miss-line:#4d2326;
-  --origin:#e8a33d; --origin-wash:#2a2013; --origin-line:#4d3a1c;
+  --route:#22d3ee; --route-wash:#062a33; --route-line:#0e4c5c;
+  --hit:#34e39b; --hit-wash:#07291d; --hit-line:#12523a;
+  --origin:#f0a92e; --origin-wash:#2b1f07; --origin-line:#553d10;
+  --miss:#ff4d6a; --miss-wash:#2d1017; --miss-line:#5a2030;
+  --violet:#a97cff; --violet-wash:#1b1333; --violet-line:#3b2a68;
   --r-sm:4px; --r:8px;
-  --sans:'Inter', system-ui, -apple-system, sans-serif;
-  --mono:'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --sans:'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --mono:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   --ease:cubic-bezier(.2,0,0,1);
   --expo:cubic-bezier(.16,1,.3,1);
   --expo-io:cubic-bezier(.83,0,.17,1);
@@ -41,7 +43,7 @@ body{
   -webkit-font-smoothing:antialiased;font-feature-settings:"cv05" 1,"ss01" 1;
 }
 body.present{background:var(--paper)}
-::selection{background:#2b3038;color:var(--ink)}
+::selection{background:var(--route-wash);color:var(--route)}
 .num{font-variant-numeric:tabular-nums}
 .mono{font-family:var(--mono);font-variant-ligatures:none}
 
@@ -100,6 +102,8 @@ body.present #viewport{padding:0}
 .tag.miss{background:var(--miss-wash);border-color:var(--miss-line);color:var(--miss)}
 .tag.origin{background:var(--origin-wash);border-color:var(--origin-line);color:var(--origin)}
 .tag.accent{background:var(--accent-wash);border-color:var(--accent-line);color:var(--accent-ink)}
+.tag.route{background:var(--route-wash);border-color:var(--route-line);color:var(--route)}
+.dot.route{background:var(--route)}
 .dot{width:6px;height:6px;border-radius:50%;flex:none;background:var(--hit)}
 .dot.origin{background:var(--origin)}
 .dot.miss{background:var(--miss)}
@@ -142,7 +146,7 @@ body.present #viewport{padding:0}
 .strip{display:grid;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
 .strip > div{padding:16px 20px;border-right:1px solid var(--line-soft)}
 .strip > div:last-child{border-right:0}
-.metric-val{margin-top:6px;font-size:26px;font-weight:600;letter-spacing:-.02em;line-height:1.1;color:var(--ink)}
+.metric-val{margin-top:6px;font-family:var(--mono);font-size:25px;font-weight:500;letter-spacing:-.015em;line-height:1.1;color:var(--ink)}
 .metric-hint{margin-top:4px;font-size:12px;color:var(--ink-3)}
 
 .row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid var(--line-soft)}
@@ -193,7 +197,7 @@ body.present #viewport{padding:0}
 
 /* ---------- topology (mirrors app/ui/Topology.tsx) ---------- */
 .edge{fill:none;stroke-width:1.1}
-.edge.in{stroke:var(--line-strong);opacity:.85}
+.edge.in{stroke:var(--route);opacity:.5}
 .edge.out{stroke:var(--origin);opacity:.4}
 .edge.off{stroke:var(--miss-line);opacity:.85;stroke-dasharray:4 5}
 .packet{opacity:0}
@@ -206,7 +210,7 @@ body.present #viewport{padding:0}
 .tlabel{font-family:var(--sans);font-size:9.5px;font-weight:600;letter-spacing:.05em;fill:var(--ink-3)}
 .tglyph{fill:none;stroke-width:1.4;stroke-linecap:round;transition:stroke .3s var(--ease)}
 .tnode .tglyph{stroke:var(--hit)}
-.tnode.lb .tglyph{stroke:var(--ink-2)}
+.tnode.lb .tglyph{stroke:var(--route)}
 .tnode.db .tglyph{stroke:var(--origin)}
 .tring{fill:none;stroke-width:1;opacity:0}
 .tnode.hit .tbox{stroke:var(--hit)}
@@ -231,6 +235,8 @@ body.present #viewport{padding:0}
 @keyframes logIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
 .log.hit{border-left-color:var(--hit)}
 .log.miss{border-left-color:var(--origin)}
+.log.route{border-left-color:var(--route)}
+.log.route .k{color:var(--route)}
 .log.chaos{border-left-color:var(--miss)}
 .log .t{color:var(--ink-3);width:48px;flex:none}
 .log .k{width:104px;flex:none;font-weight:500;color:var(--ink-inv-2)}
@@ -299,8 +305,8 @@ body.present #viewport{padding:0}
 .scene.live .page.scrolls{animation:scroll 8.4s var(--expo-io) both}
 @keyframes scroll{
   0%,32%{transform:translateY(0)}
-  48%,64%{transform:translateY(-296px)}
-  80%,100%{transform:translateY(-470px)}
+  48%,64%{transform:translateY(-320px)}
+  80%,100%{transform:translateY(-518px)}
 }
 .wrap{max-width:1240px;margin:0 auto;padding:0 40px}
 .hero-h1{font-size:54px;font-weight:600;letter-spacing:-.03em;line-height:1.06}
@@ -309,10 +315,15 @@ body.present #viewport{padding:0}
 .trace{display:grid;grid-template-columns:repeat(6,1fr);border-top:1px solid var(--line);margin-top:36px}
 .trace > div{padding:18px 20px 24px 0;border-right:1px solid var(--line-soft);position:relative}
 .trace > div:last-child{border-right:0}
-.trace > div::before{content:"";position:absolute;top:-1px;left:0;width:28px;height:2px;background:var(--ink)}
-.trace > div.miss::before{background:var(--miss)}
-.trace .tt{font-family:var(--mono);font-size:12px;color:var(--ink)}
-.trace > div.miss .tt{color:var(--miss)}
+.trace > div::before{content:"";position:absolute;top:-1px;left:0;width:28px;height:2px;background:var(--route)}
+.trace > div.o::before{background:var(--origin)}
+.trace > div.h::before{background:var(--hit)}
+.trace .tt{font-family:var(--mono);font-size:12px;color:var(--route)}
+.trace > div.o .tt{color:var(--origin)}
+.trace > div.h .tt{color:var(--hit)}
+.legend{display:flex;flex-wrap:wrap;gap:24px;margin-top:28px;align-items:center}
+.legend span{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-2)}
+.legend i{width:18px;height:2px;display:block}
 .trace h5{margin-top:10px;font-size:14.5px;font-weight:600}
 .trace p{margin-top:6px;font-size:13px;line-height:1.6;color:var(--ink-2)}
 .agents{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:0 20px}
@@ -353,7 +364,7 @@ body.present #chrome{display:none}
   transition:background-color .15s var(--ease),color .15s var(--ease),border-color .15s var(--ease);
 }
 .ctl:hover{background:var(--sunken);color:var(--ink)}
-.ctl:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ctl:focus-visible{outline:2px solid var(--route);outline-offset:2px}
 .ctl.main{background:var(--ink);border-color:var(--ink);color:var(--paper);width:36px;height:36px}
 .ctl.main:hover{background:#fff;color:var(--paper)}
 .ctl svg{width:16px;height:16px;fill:currentColor;display:block}
@@ -431,11 +442,18 @@ body.present #chrome{display:none}
             <p style="margin-top:10px;font-size:15.5px;color:var(--ink-2);max-width:62ch">Nothing in the model is scheduled by hand. This is the sequence the engine produces for a single key when a write lands just before a read.</p>
             <div class="trace">
               <div><div class="tt">0 ms</div><h5>Client writes</h5><p>A client agent puts a new value for one key onto the queue.</p></div>
-              <div><div class="tt">5 ms</div><h5>Origin accepts</h5><p>The database records the write and issues invalidations.</p></div>
+              <div class="o"><div class="tt">5 ms</div><h5>Origin accepts</h5><p>The database records the write and issues invalidations.</p></div>
               <div><div class="tt">10 ms</div><h5>Nodes invalidate</h5><p>Every cache node holding that key drops its copy.</p></div>
               <div><div class="tt">15 ms</div><h5>Client reads</h5><p>A read for the same key reaches the load balancer.</p></div>
-              <div class="miss"><div class="tt">20 ms</div><h5>Cache miss</h5><p>The routed node no longer holds the key and asks the origin.</p></div>
-              <div><div class="tt">30 ms</div><h5>Client answered</h5><p>The value returns and the node caches it for next time.</p></div>
+              <div class="o"><div class="tt">20 ms</div><h5>Cache miss</h5><p>The routed node no longer holds the key and asks the origin.</p></div>
+              <div class="h"><div class="tt">30 ms</div><h5>Client answered</h5><p>The value returns, and the next read on that key will hit.</p></div>
+            </div>
+            <div class="legend">
+              <span><i style="background:var(--route)"></i>Request in flight</span>
+              <span><i style="background:var(--hit)"></i>Served from cache</span>
+              <span><i style="background:var(--origin)"></i>Fell through to origin</span>
+              <span><i style="background:var(--miss)"></i>Node failure</span>
+              <span style="color:var(--ink-3)">— the only four colours in the interface.</span>
             </div>
           </div>
         </div>
@@ -810,12 +828,12 @@ body.present #chrome{display:none}
     });
     svg.innerHTML =
       '<defs><linearGradient id="' + gid + '" x1="0" y1="0" x2="0" y2="1">' +
-      '<stop offset="0%" stop-color="#3ecf8e" stop-opacity="0.22"/>' +
-      '<stop offset="100%" stop-color="#3ecf8e" stop-opacity="0"/></linearGradient></defs>' +
+      '<stop offset="0%" stop-color="#34e39b" stop-opacity="0.22"/>' +
+      '<stop offset="100%" stop-color="#34e39b" stop-opacity="0"/></linearGradient></defs>' +
       '<g>' + grid + '</g><g class="axis">' + labels + '</g>' +
       '<path class="plot-area" d="' + area + '" fill="url(#' + gid + ')" style="--dur:' + o.dur + 's;--d:' + o.delay + 's"/>' +
       '<path class="plot-line" pathLength="1" d="' + line + '" style="--dur:' + o.dur + 's;--d:' + o.delay + 's"/>' +
-      '<circle class="plot-head" r="4.5" fill="#3ecf8e" stroke="#0b0c0e" stroke-width="2" ' +
+      '<circle class="plot-head" r="4.5" fill="#34e39b" stroke="#0b0c0e" stroke-width="2" ' +
       'style="offset-path:path(\'' + line + '\');offset-rotate:0deg;--dur:' + o.dur + 's;--d:' + o.delay + 's"/>';
   }
 
@@ -862,10 +880,10 @@ body.present #chrome{display:none}
       edges += '<path class="edge out out-' + i + '" d="' + out + '"/>';
       if (o.running) {
         for (var k = 0; k < (o.perEdge || 1); k++) {
-          packets += '<circle class="packet p-in-' + i + '" r="3.2" fill="#9ba1ab" style="offset-path:path(\'' + inn +
+          packets += '<circle class="packet p-in-' + i + '" r="3.2" fill="#22d3ee" style="offset-path:path(\'' + inn +
             '\');offset-rotate:0deg;--pd:' + (1.6 + rnd() * .9).toFixed(2) + 's;--pdelay:' + (rnd() * 2).toFixed(2) + 's"/>';
         }
-        packets += '<circle class="packet p-out-' + i + '" r="2.8" fill="#c2760b" opacity=".85" style="offset-path:path(\'' + out +
+        packets += '<circle class="packet p-out-' + i + '" r="2.8" fill="#f0a92e" opacity=".85" style="offset-path:path(\'' + out +
           '\');offset-rotate:0deg;--pd:' + (2 + rnd() * .6).toFixed(2) + 's;--pdelay:' + (.8 + rnd() * 1.9).toFixed(2) + 's"/>';
       }
       nodes += tnode(nx, y, (o.prefix || 'n') + '-' + i, 'node', 'CACHE ' + ('0' + i).slice(-2), '');
@@ -931,14 +949,14 @@ body.present #chrome{display:none}
       var html = '';
       [0, 45, 90, 135, 180].forEach(function (v) {
         html += '<line class="grid-line" x1="' + bl + '" y1="' + gy(v) + '" x2="' + W + '" y2="' + gy(v) + '"/>' +
-          '<text class="lbl" x="' + (bl - 9) + '" y="' + (gy(v) + 4) + '" text-anchor="end" font-size="11" fill="#7b818b" font-family="Inter,sans-serif">' + v + '</text>';
+          '<text class="lbl" x="' + (bl - 9) + '" y="' + (gy(v) + 4) + '" text-anchor="end" font-size="11" fill="#7b818b" font-family="IBM Plex Sans, sans-serif">' + v + '</text>';
       });
       var step = (W - bl) / data.length;
       data.forEach(function (d, i) {
         var cx = bl + step * i + step / 2;
-        html += '<rect class="bar" x="' + (cx - 34) + '" y="' + gy(d[1]) + '" width="32" height="' + (H - bb - gy(d[1])) + '" rx="2" fill="#3ecf8e" style="--d:' + (.6 + i * .08) + 's"/>';
+        html += '<rect class="bar" x="' + (cx - 34) + '" y="' + gy(d[1]) + '" width="32" height="' + (H - bb - gy(d[1])) + '" rx="2" fill="#34e39b" style="--d:' + (.6 + i * .08) + 's"/>';
         html += '<rect class="bar" x="' + (cx + 2) + '" y="' + gy(d[2]) + '" width="32" height="' + (H - bb - gy(d[2])) + '" rx="2" fill="#343841" style="--d:' + (.66 + i * .08) + 's"/>';
-        html += '<text x="' + cx + '" y="' + (H - 8) + '" text-anchor="middle" font-size="11" fill="#7b818b" font-family="Inter,sans-serif">' + d[0] + '</text>';
+        html += '<text x="' + cx + '" y="' + (H - 8) + '" text-anchor="middle" font-size="11" fill="#7b818b" font-family="IBM Plex Sans, sans-serif">' + d[0] + '</text>';
       });
       $('#ana-bars').innerHTML = html;
 
@@ -950,7 +968,7 @@ body.present #chrome{display:none}
           '" stroke-dasharray="' + r1(len - 5) + ' ' + r1(C - len + 5) + '" transform="rotate(' + (-90 + off * 360) + ' 140 160)" ' +
           'style="--len:' + r1(len) + ';--d:' + delay + 's;stroke-dashoffset:0"/>';
       };
-      $('#ana-donut').innerHTML = seg(hits, 0, '#3ecf8e', .6) + seg(1 - hits, hits, '#c2760b', .8);
+      $('#ana-donut').innerHTML = seg(hits, 0, '#34e39b', .6) + seg(1 - hits, hits, '#c2760b', .8);
 
       /* capability profile */
       var cx = 190, cy = 258, rad = 148;
@@ -966,10 +984,10 @@ body.present #chrome{display:none}
       axes.forEach(function (a, i) {
         var e = pt(i, 1), l = pt(i, 1.2);
         rh += '<line x1="' + cx + '" y1="' + cy + '" x2="' + e[0] + '" y2="' + e[1] + '" stroke="#23262c"/>' +
-          '<text x="' + l[0] + '" y="' + (l[1] + 4) + '" text-anchor="middle" font-size="11" fill="#9ba1ab" font-family="Inter,sans-serif">' + a[0] + '</text>';
+          '<text x="' + l[0] + '" y="' + (l[1] + 4) + '" text-anchor="middle" font-size="11" fill="#9ba1ab" font-family="IBM Plex Sans, sans-serif">' + a[0] + '</text>';
       });
       rh += '<polygon class="radar-poly" points="' + axes.map(function (a, i) { return pt(i, a[1] / 100).join(','); }).join(' ') +
-        '" fill="#3ecf8e" fill-opacity="0.14" stroke="#3ecf8e" stroke-width="1.5" stroke-linejoin="round"/>';
+        '" fill="#34e39b" fill-opacity="0.14" stroke="#34e39b" stroke-width="1.5" stroke-linejoin="round"/>';
       $('#ana-radar').innerHTML = rh;
     },
   };

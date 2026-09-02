@@ -1,16 +1,21 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import ThemeRegistry from "./ThemeRegistry";
 
-const inter = Inter({
-  variable: "--font-inter",
+/* IBM Plex was drawn for an engineering company's own tooling, and the
+   sans and mono were designed together — which is exactly the pairing a
+   measurement interface wants. It is also not Inter. */
+const sans = IBM_Plex_Sans({
+  variable: "--font-sans",
+  weight: ["400", "500", "600"],
   subsets: ["latin"],
   display: "swap",
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const mono = IBM_Plex_Mono({
   variable: "--font-mono",
+  weight: ["400", "500"],
   subsets: ["latin"],
   display: "swap",
 });
@@ -32,7 +37,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${jetbrainsMono.variable}`}>
+      <body className={`${sans.variable} ${mono.variable}`}>
         <ThemeRegistry>{children}</ThemeRegistry>
       </body>
     </html>

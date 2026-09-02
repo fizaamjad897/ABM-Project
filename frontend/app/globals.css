@@ -25,22 +25,28 @@
   --line-soft: #1a1d22;
   --line-strong: #343841;
 
-  /* interactive: neutral by design, never a brand hue */
+  /* neutral emphasis */
   --accent: #eceef1;
   --accent-ink: #ffffff;
   --accent-wash: #1c1f25;
   --accent-line: #33373f;
 
-  /* semantics — the only colour in the product */
-  --hit: #3ecf8e;
-  --hit-wash: #0f2a20;
-  --hit-line: #1f4d3a;
-  --miss: #f2555a;
-  --miss-wash: #2a1416;
-  --miss-line: #4d2326;
-  --origin: #e8a33d;
-  --origin-wash: #2a2013;
-  --origin-line: #4d3a1c;
+  /* channel colours — each names one thing the model does */
+  --route: #22d3ee;
+  --route-wash: #062a33;
+  --route-line: #0e4c5c;
+  --hit: #34e39b;
+  --hit-wash: #07291d;
+  --hit-line: #12523a;
+  --origin: #f0a92e;
+  --origin-wash: #2b1f07;
+  --origin-line: #553d10;
+  --miss: #ff4d6a;
+  --miss-wash: #2d1017;
+  --miss-line: #5a2030;
+  --violet: #a97cff;
+  --violet-wash: #1b1333;
+  --violet-line: #3b2a68;
 
   /* geometry — two radii, no more */
   --r-sm: 4px;
@@ -76,7 +82,7 @@ body {
   overflow-x: hidden;
   background: var(--paper);
   color: var(--ink);
-  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   font-size: 15px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -106,8 +112,8 @@ a {
 }
 
 ::selection {
-  background: #2b3038;
-  color: var(--ink);
+  background: var(--route-wash);
+  color: var(--route);
 }
 
 /* Browser surfaces belong to the design system too. */
@@ -130,8 +136,9 @@ a {
   background: var(--line-strong);
 }
 
+/* Focus is interaction, and interaction is the request channel. */
 :focus-visible {
-  outline: 2px solid var(--ink);
+  outline: 2px solid var(--route);
   outline-offset: 2px;
   border-radius: 2px;
 }

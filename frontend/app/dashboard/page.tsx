@@ -19,9 +19,10 @@ type LogEntry = { id: string; time: number; type: string; msg: string };
 /* Colour in the log means what it means everywhere else. */
 const LOG_TONE = (t: string) =>
     t.includes('HIT') ? c.hit
-        : t.includes('MISS') ? c.origin
-            : t.includes('CHAOS') || t.includes('KILL') ? c.miss
-                : c.ink3;
+        : t.includes('MISS') || t.includes('DB') || t.includes('EVICT') ? c.origin
+            : t.includes('CHAOS') || t.includes('KILL') || t.includes('DOWN') ? c.miss
+                : t.includes('WRITE') || t.includes('INVALIDATE') || t.includes('REHASH') ? c.route
+                    : c.ink3;
 
 export default function Dashboard() {
     const [isRunning, setIsRunning] = React.useState(false);
@@ -198,7 +199,7 @@ export default function Dashboard() {
                     <Metric label="Hit ratio" value={`${hitRatio}%`} hint={totalReads ? `${fullMetrics.hits} of ${totalReads} reads` : 'No reads yet'} />
                     <Metric label="Total reads" value={totalReads.toLocaleString()} hint={`${config.nodes} nodes routing`} />
                     <Metric label="Cache misses" value={(fullMetrics.misses || 0).toLocaleString()} hint="Served from origin" />
-                    <Metric label="Model clock" value={`${simTime.toFixed(1)}s`} hint={isRunning ? `${simProgress.toFixed(0)}% of cycle` : 'Idle'} />
+                    <Metric label="Clock" value={`${simTime.toFixed(1)}s`} hint={isRunning ? `${simProgress.toFixed(0)}% of cycle` : 'Idle'} />
                 </MetricStrip>
 
                 {isRunning && (

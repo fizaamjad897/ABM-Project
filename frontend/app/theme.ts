@@ -7,8 +7,9 @@ import { createTheme } from '@mui/material/styles';
 
    Rule of the system: interface chrome carries no colour. Nav,
    panels, borders, buttons and controls are neutral. Colour only
-   appears where it means something about the model —
-   green = cache hit, amber = origin read, red = failure.
+   appears where it names something the model does —
+   cyan = a request in flight, green = a cache hit,
+   amber = a read that fell through to the origin, red = a failure.
    A chart line is green because it plots hits.
    ============================================================ */
 export const c = {
@@ -31,26 +32,41 @@ export const c = {
     lineSoft: '#1a1d22',
     lineStrong: '#343841',
 
-    /* interactive: neutral by design, never a brand hue */
+    /* neutral emphasis — used where nothing is being stated about data */
     accent: '#eceef1',
     accentInk: '#ffffff',
     accentWash: '#1c1f25',
     accentLine: '#33373f',
 
-    /* semantics — the only colour in the product */
-    hit: '#3ecf8e',
-    hitWash: '#0f2a20',
-    hitLine: '#1f4d3a',
-    miss: '#f2555a',
-    missWash: '#2a1416',
-    missLine: '#4d2326',
-    origin: '#e8a33d',
-    originWash: '#2a2013',
-    originLine: '#4d3a1c',
+    /* ------------------------------------------------------------
+       Channel colours. Borrowed from test equipment, where every
+       trace on the screen gets its own hue so you can tell the
+       channels apart at a glance. Each one here names one thing the
+       model does, and is never used for anything else.
+       ------------------------------------------------------------ */
+    route: '#22d3ee',      // a request in flight: client -> balancer -> node
+    routeWash: '#062a33',
+    routeLine: '#0e4c5c',
+
+    hit: '#34e39b',        // the node answered from its own cache
+    hitWash: '#07291d',
+    hitLine: '#12523a',
+
+    origin: '#f0a92e',     // the read fell through to the database
+    originWash: '#2b1f07',
+    originLine: '#553d10',
+
+    miss: '#ff4d6a',       // a node died, or the run failed
+    missWash: '#2d1017',
+    missLine: '#5a2030',
+
+    violet: '#a97cff',     // reserved for a further series in comparisons
+    violetWash: '#1b1333',
+    violetLine: '#3b2a68',
 } as const;
 
 /* Chart series, in the order the eye should read them. Semantic first. */
-export const series = [c.hit, c.origin, c.ink2, '#6f95c9', c.miss];
+export const series = [c.hit, c.origin, c.route, c.violet, c.miss];
 
 export const radius = { sm: 4, md: 8 };
 
@@ -68,12 +84,12 @@ const theme = createTheme({
     },
     shape: { borderRadius: radius.md },
     typography: {
-        fontFamily: 'var(--font-inter), system-ui, -apple-system, sans-serif',
+        fontFamily: 'var(--font-sans), ui-sans-serif, system-ui, sans-serif',
         htmlFontSize: 16,
         fontSize: 15,
-        h1: { fontSize: '3.5rem', lineHeight: 1.05, letterSpacing: '-0.03em', fontWeight: 600 },
-        h2: { fontSize: '2.5rem', lineHeight: 1.1, letterSpacing: '-0.025em', fontWeight: 600 },
-        h3: { fontSize: '1.75rem', lineHeight: 1.2, letterSpacing: '-0.02em', fontWeight: 600 },
+        h1: { fontSize: '3.5rem', lineHeight: 1.06, letterSpacing: '-0.022em', fontWeight: 600 },
+        h2: { fontSize: '2.5rem', lineHeight: 1.12, letterSpacing: '-0.02em', fontWeight: 600 },
+        h3: { fontSize: '1.75rem', lineHeight: 1.22, letterSpacing: '-0.016em', fontWeight: 600 },
         h4: { fontSize: '1.3125rem', lineHeight: 1.3, letterSpacing: '-0.015em', fontWeight: 600 },
         h5: { fontSize: '1.0625rem', lineHeight: 1.4, letterSpacing: '-0.01em', fontWeight: 600 },
         h6: { fontSize: '0.9375rem', lineHeight: 1.45, letterSpacing: '-0.005em', fontWeight: 600 },
@@ -190,7 +206,7 @@ const theme = createTheme({
                     color: c.ink,
                     '& .MuiOutlinedInput-notchedOutline': { borderColor: c.line },
                     '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: c.lineStrong },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: c.ink3, borderWidth: 1 },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: c.route, borderWidth: 1 },
                 },
                 input: { '&::placeholder': { color: c.ink3, opacity: 1 } },
             },

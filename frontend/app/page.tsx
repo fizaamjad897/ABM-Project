@@ -10,12 +10,20 @@ import Topology from './ui/Topology';
 /* The documented walkthrough of a single write-then-read, from the
    project README. Real timings from the engine, not illustration. */
 const TRACE = [
-    { t: '0 ms', title: 'Client writes', body: 'A client agent puts a new value for one key onto the queue.' },
-    { t: '5 ms', title: 'Origin accepts', body: 'The database records the write and issues invalidations.' },
-    { t: '10 ms', title: 'Nodes invalidate', body: 'Every cache node holding that key drops its copy.' },
-    { t: '15 ms', title: 'Client reads', body: 'A read for the same key reaches the load balancer.' },
-    { t: '20 ms', title: 'Cache miss', body: 'The routed node no longer holds the key and asks the origin.' },
-    { t: '30 ms', title: 'Client answered', body: 'The value returns and the node caches it for next time.' },
+    { t: '0 ms', title: 'Client writes', body: 'A client agent puts a new value for one key onto the queue.', tone: c.route },
+    { t: '5 ms', title: 'Origin accepts', body: 'The database records the write and issues invalidations.', tone: c.origin },
+    { t: '10 ms', title: 'Nodes invalidate', body: 'Every cache node holding that key drops its copy.', tone: c.route },
+    { t: '15 ms', title: 'Client reads', body: 'A read for the same key reaches the load balancer.', tone: c.route },
+    { t: '20 ms', title: 'Cache miss', body: 'The routed node no longer holds the key and asks the origin.', tone: c.origin },
+    { t: '30 ms', title: 'Client answered', body: 'The value returns, and the next read on that key will hit.', tone: c.hit },
+];
+
+/* The colour system, stated once. Every hue in the product is on this list. */
+const CHANNELS = [
+    ['Request in flight', c.route],
+    ['Served from cache', c.hit],
+    ['Fell through to origin', c.origin],
+    ['Node failure', c.miss],
 ];
 
 const AGENTS = [
@@ -102,10 +110,10 @@ export default function HomePage() {
                                 position: 'relative',
                                 '&::before': {
                                     content: '""', position: 'absolute', top: -1, left: 0, width: 28, height: 2,
-                                    bgcolor: i === 4 ? c.miss : c.accent,
+                                    bgcolor: s.tone,
                                 },
                             }}>
-                                <Typography className="mono num" sx={{ fontSize: 12, color: i === 4 ? c.miss : c.accent, fontWeight: 500 }}>
+                                <Typography className="mono num" sx={{ fontSize: 12, color: s.tone, fontWeight: 500 }}>
                                     {s.t}
                                 </Typography>
                                 <Typography sx={{ mt: 1.25, fontSize: 14.5, fontWeight: 600, color: c.ink }}>{s.title}</Typography>
@@ -115,6 +123,18 @@ export default function HomePage() {
                             </Box>
                         ))}
                     </Box>
+
+                    <Stack direction="row" flexWrap="wrap" sx={{ mt: 4, rowGap: 1.5, columnGap: 3 }}>
+                        {CHANNELS.map(([label, tone]) => (
+                            <Stack key={label as string} direction="row" spacing={1} alignItems="center">
+                                <Box sx={{ width: 18, height: 2, bgcolor: tone as string, flex: 'none' }} />
+                                <Typography sx={{ fontSize: 12.5, color: c.ink2 }}>{label}</Typography>
+                            </Stack>
+                        ))}
+                        <Typography sx={{ fontSize: 12.5, color: c.ink3 }}>
+                            — the only four colours in the interface.
+                        </Typography>
+                    </Stack>
                 </Page>
             </Box>
 

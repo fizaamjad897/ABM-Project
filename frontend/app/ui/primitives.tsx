@@ -180,14 +180,16 @@ export function Panel({
 
 /* ---------- data display ---------- */
 
-type Tone = 'neutral' | 'accent' | 'hit' | 'miss' | 'origin';
+type Tone = 'neutral' | 'accent' | 'route' | 'hit' | 'miss' | 'origin' | 'violet';
 
 const TONE: Record<Tone, { fg: string; bg: string; bd: string }> = {
     neutral: { fg: c.ink2, bg: c.surface, bd: c.line },
     accent: { fg: c.accentInk, bg: c.accentWash, bd: c.accentLine },
+    route: { fg: c.route, bg: c.routeWash, bd: c.routeLine },
     hit: { fg: c.hit, bg: c.hitWash, bd: c.hitLine },
     miss: { fg: c.miss, bg: c.missWash, bd: c.missLine },
     origin: { fg: c.origin, bg: c.originWash, bd: c.originLine },
+    violet: { fg: c.violet, bg: c.violetWash, bd: c.violetLine },
 };
 
 export function Tag({ children, tone = 'neutral' }: { children: React.ReactNode; tone?: Tone }) {
@@ -217,8 +219,8 @@ export function Metric({ label, value, hint }: { label: string; value: React.Rea
     return (
         <Box sx={{ px: { xs: 2, md: 2.5 }, py: 2 }}>
             <Label>{label}</Label>
-            <Typography className="num" sx={{
-                mt: .75, fontSize: 26, fontWeight: 600, letterSpacing: '-0.02em',
+            <Typography className="mono num" sx={{
+                mt: .75, fontSize: 25, fontWeight: 500, letterSpacing: '-0.015em',
                 lineHeight: 1.1, color: c.ink,
             }}>
                 {value}

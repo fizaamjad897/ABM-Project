@@ -85,7 +85,7 @@ function NodeBox({
             <text
                 x={BOX_W / 2} y={BOX_H - 13} textAnchor="middle"
                 fontSize={9.5} fontWeight={600} letterSpacing=".05em"
-                fill={dead ? c.miss : c.ink3} fontFamily="var(--font-inter), sans-serif"
+                fill={dead ? c.miss : c.ink3} fontFamily="var(--font-sans), sans-serif"
             >
                 {label.toUpperCase()}
             </text>
@@ -135,10 +135,10 @@ export default function Topology({
                     <g key={i}>
                         <path
                             d={e.inn} fill="none"
-                            stroke={dead ? c.missLine : c.lineStrong}
+                            stroke={dead ? c.missLine : c.route}
                             strokeWidth={1.1}
                             strokeDasharray={dead ? '4 5' : undefined}
-                            opacity={dead ? 0.9 : 0.85}
+                            opacity={dead ? 0.9 : 0.5}
                         />
                         <path
                             d={e.out} fill="none"
@@ -149,7 +149,7 @@ export default function Topology({
                         />
                         {running && !dead && (
                             <>
-                                <circle r={3.2} fill={c.ink2} style={{
+                                <circle r={3.2} fill={c.route} style={{
                                     offsetPath: `path("${e.inn}")`, offsetRotate: '0deg',
                                     animation: `cn-packet ${1.6 + (i % 3) * 0.35}s linear infinite`,
                                     animationDelay: `${(i * 0.42) % 1.7}s`,
@@ -165,7 +165,7 @@ export default function Topology({
                 );
             })}
 
-            <NodeBox x={lb[0]} y={cy} label="Balancer" kind="lb" state="idle" tone={c.ink2} />
+            <NodeBox x={lb[0]} y={cy} label="Balancer" kind="lb" state="idle" tone={c.route} />
             {ys.map((y, i) => (
                 <NodeBox
                     key={i} x={nx} y={y}
